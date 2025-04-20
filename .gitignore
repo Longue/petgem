@@ -1,0 +1,13 @@
+# Build output directory
+build/
+
+# Documentation build output
+docs/build/
+docs/doxygen/
+
+# Object files, executables, libraries
+*.o
+*.so
+*.a
+*.dll
+*.exe
