@@ -37,6 +37,14 @@
 // Function: printHeader
 // =============================================================================
 
+/**
+ * @brief Prints the PETGEM project header to standard output.
+ * @return PetscErrorCode PETSC_SUCCESS on successful printing.
+ * @details Prints a formatted header containing the project name, description,
+ *          repository/website links, author/affiliation information, and the current year.
+ *          Uses PETSC_COMM_WORLD for parallel printing.
+ */
+
 PetscErrorCode printHeader(){
     /*
       Function: printHeader
@@ -87,6 +95,14 @@ PetscErrorCode printHeader(){
 // Function: printFooter
 // =============================================================================
 
+/**
+ * @brief Prints the PETGEM simulation finalization message and version.
+ * @return PetscErrorCode PETSC_SUCCESS on successful printing.
+ * @details Retrieves the current date and time using `PetscGetDate` and prints a
+ *          "Finished: YYYY-MM-DD HH:MM:SS" message, followed by the PETGEM version number.
+ *          Uses PETSC_COMM_WORLD for parallel printing.
+ */
+
 PetscErrorCode printFooter(){
     /*
     * Function: printFooter
@@ -127,6 +143,16 @@ PetscErrorCode printFooter(){
 // =============================================================================
 // Function: createDirectory
 // =============================================================================
+
+/**
+ * @brief Creates a directory if it does not already exist.
+ * @param[in] path The path of the directory to create.
+ * @return PetscErrorCode PETSC_SUCCESS on successful creation or if the directory already exists.
+ *         Returns PETSC_ERR_FILE_OPEN if the path exists but is not a directory, or if `mkdir` fails for reasons other than EEXIST.
+ * @details Checks if the specified `path` exists using `stat`. If it exists and is a directory,
+ *          it returns success. If it exists but is not a directory, it returns an error.
+ *          If it does not exist, it attempts to create it using `mkdir` with permissions 0755.
+ */
 
 PetscErrorCode createDirectory(const char *path) {
     /*

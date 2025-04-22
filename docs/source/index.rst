@@ -1,0 +1,25 @@
+.. PETGEM documentation master file, created by generate_sphinx_structure.py
+
+Welcome to PETGEM's documentation!
+==================================
+
+**PETGEM: Parallel Edge-based Tool for Electromagnetic Modelling**
+
+This documentation provides guides on installation, usage, theory, and the detailed API reference for PETGEM.
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:
+
+   installation
+   usage
+   theory
+   contributing
+   api/index
+
+Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`search`
+

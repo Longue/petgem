@@ -35,4 +35,22 @@ $(TARGET): $(OBJS)
 
 # Clean rule
 clean::
-	rm -f $(OBJS) $(TARGET)
+	@echo ">>> Limpiando archivos de compilación PETSc/kernel..."
+	rm -f $(OBJS) $(TARGET) # Asumiendo que OBJS y TARGET están definidos arriba
+	# O lo que sea que limpie el ejecutable 'kernel' y sus objetos
+
+	@echo ">>> Limpiando directorios de documentación (build y doxygen)..."
+	rm -rf docs/build/* docs/doxygen/*
+	@echo ">>> Limpieza completada."
+
+## CI RULES
+# AutoDoc
+DOXYFILE = Doxyfile
+SPHINX_SOURCE_DIR = docs/source
+SPHINX_BUILD_DIR = docs/build
+
+docs: $(SRCS) include/*.h $(DOXYFILE) $(SPHINX_SOURCE_DIR)/*.rst $(SPHINX_SOURCE_DIR)/conf.py
+	@echo "Generating Doxygen XML..."
+	doxygen $(DOXYFILE)
+	@echo "Building Sphinx HTML documentation..."
+	sphinx-build -b html $(SPHINX_SOURCE_DIR) $(SPHINX_BUILD_DIR)/html

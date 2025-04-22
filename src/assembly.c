@@ -22,6 +22,20 @@
 #include "hvfem.h"
 #include "constants.h"
 
+/**
+ * @brief Checks if the discrete gradient is in the kernel of the mass matrix M * G == 0.
+ * @param[in] M Pointer to the mass matrix data (row-major).
+ * @param[in] G Pointer to the discrete gradient matrix data (row-major).
+ * @param[in] m Number of rows in M and G.
+ * @param[in] n Number of columns in G (number of rows in H1 space).
+ * @param[in] w Element identifier (for error reporting).
+ * @return PetscErrorCode PETSC_SUCCESS on success.
+ * @details This function verifies the property M * G = 0 for a given element's mass matrix (M)
+ *          and discrete gradient matrix (G). It prints an error message if the product
+ *          is not close to zero within PETSC_SMALL tolerance. The check is currently
+ *          disabled by the `#if 0` block.
+ */
+
 PetscErrorCode check_kernel(PetscReal *M, PetscReal *G, PetscInt m, PetscInt n, PetscInt w)
 {
    PetscFunctionBeginUser;
@@ -48,9 +62,24 @@ PetscErrorCode check_kernel(PetscReal *M, PetscReal *G, PetscInt m, PetscInt n, 
    PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/* =============================================================================
-   Function: assembleSystem
-   ============================================================================= */
+/**
+ * @brief Assembles the linear system matrices (A, B, G) for the HVFEM formulation.
+ * @param[in] dm The DMPlex object representing the mesh topology and H(curl) discretization.
+ * @param[in] resistivity The Vec containing resistivity values, associated with a DM providing cell-wise constants.
+ * @param[in] grid A Grid struct containing mesh statistics and DOF information.
+ * @param[in] sources A setSource struct containing source parameters (frequency, positions, etc.).
+ * @param[in] params A Params struct containing simulation parameters (basis order, mode, etc.).
+ * @param[out] A Pointer to the assembled system matrix (K - i*omega*mu*M).
+ * @param[out] B Pointer to the assembled right-hand side matrix (one column per source).
+ * @param[out] G Pointer to the assembled discrete gradient matrix (maps H1 DOFs to H(curl) DOFs).
+ * @return PetscErrorCode PETSC_SUCCESS on success.
+ * @details This function orchestrates the assembly of the finite element system.
+ *          It computes elemental stiffness (K), mass (M), and discrete gradient (G) matrices
+ *          and assembles them into global PETSc Mat objects. It also computes the
+ *          right-hand side vector(s) based on the source definition (CSEM or MT).
+ *          The final system matrix A is K - (i*omega*mu)*M.
+ */
+
 PetscErrorCode assembleSystem(DM dm, Vec resistivity, Grid grid, setSource sources, Params params, Mat *A, Mat *B, Mat *G) 
 {
    PetscFunctionBeginUser;

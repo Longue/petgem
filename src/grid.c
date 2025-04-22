@@ -31,6 +31,19 @@
 // =============================================================================
 // Function: importGrid
 // =============================================================================
+
+/**
+ * @brief Imports the mesh topology, coordinates, labels, and resistivity field from an HDF5 file.
+ * @param[out] odm Pointer to the DMPlex object to be created and populated.
+ * @param[out] resistivity_output Pointer to the Vec that will store the local resistivity values.
+ * @param[in] params A Params struct containing simulation parameters, including the mesh filename.
+ * @return PetscErrorCode PETSC_SUCCESS on success.
+ * @details Reads a PETSc-formatted HDF5 file containing a DMPlex mesh ("petgem_mesh") and
+ *          an associated Vec ("resistivity"). It handles mesh distribution for parallel runs.
+ *          The function clones the loaded DM for the main computation (`odm`) and returns
+ *          the resistivity field as a local Vec. DM options like VecType and MatType are processed.
+ */
+
 PetscErrorCode importGrid(DM *odm, Vec *resistivity_output, Params params)
 {
     PetscViewer viewer;
@@ -105,10 +118,23 @@ PetscErrorCode importGrid(DM *odm, Vec *resistivity_output, Params params)
 }
 
 
-/* =============================================================================
-   Function: setupGrid
-   =============================================================================
-*/
+/**
+ * @brief Sets up the DMPlex object with appropriate sections for H(curl) and H1 finite elements.
+ * @param[in,out] dm Pointer to the DMPlex object to be configured.
+ * @param[out] grid Pointer to the Grid struct to be populated with mesh statistics and DOF info.
+ * @param[in] params A Params struct containing simulation parameters, especially the basis order (`nord`).
+ * @return PetscErrorCode PETSC_SUCCESS on success.
+ * @details Configures the primary DM for H(curl) elements of order `params.nord`.
+ *          - Sets the number of fields to 1.
+ *          - Creates a "Boundary" label and marks boundary faces (ID 100).
+ *          - Computes DOFs per vertex, edge, face, and volume based on `params.nord`.
+ *          - Creates the PetscSection for H(curl) elements, applying boundary conditions to the marked faces.
+ *          - Clones the DM to create `grid->H1dm` and sets up its section for H1 elements (currently hardcoded for order 1).
+ *          - Computes and stores local and global counts of vertices, edges, faces, and cells in the `grid` struct.
+ *          - Stores DOF counts, element start/end indices, and dimension in the `grid` struct.
+ *          - Prints mesh statistics.
+ */
+
 PetscErrorCode setupGrid(DM *dm, Grid *grid, Params params) {
 
 	PetscFunctionBeginUser;
@@ -287,6 +313,18 @@ PetscErrorCode setupGrid(DM *dm, Grid *grid, Params params) {
 // =============================================================================
 // Function: locateCSEMSource
 // =============================================================================
+
+/**
+ * @brief Locates the cell containing a given point (e.g., a CSEM source position).
+ * @param[in] dm The DMPlex object representing the mesh.
+ * @param[in] position Array containing the [x, y, z] coordinates of the point to locate.
+ * @param[out] pointInCell Pointer to an integer where the index of the containing cell will be stored. Set to -1 if not found locally.
+ * @return PetscErrorCode PETSC_SUCCESS on success.
+ * @details Uses `DMLocatePoints` to find which cell owns the given `position`.
+ *          Performs an MPI reduction (`MPI_LOR`) to check if the point was found on *any* process.
+ *          If the point is not found globally, it triggers a `PetscCheck` error.
+ */
+
 PetscErrorCode locatePoint(DM dm, PetscReal *position, PetscInt *pointInCell) {
 
     PetscFunctionBeginUser;

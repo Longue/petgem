@@ -27,6 +27,25 @@
 // =============================================================================
 // Function: readUserParams
 // =============================================================================
+
+/**
+ * @brief Reads and validates user-provided parameters from PETSc options.
+ * @param[out] params Pointer to the Params struct to be populated.
+ * @param[in] size The total number of MPI tasks (MPI_Comm_size).
+ * @return PetscErrorCode PETSC_SUCCESS on successful parsing and validation.
+ *         Returns error codes if mandatory parameters are missing or invalid.
+ * @details Parses command-line options or options file entries for:
+ *          - `-mesh_filename`: Path to the mesh file (mandatory).
+ *          - `-receivers_filename`: Path to the receivers file (mandatory).
+ *          - `-output_dir`: Output directory path (mandatory).
+ *          - `-output_filename`: Base name for output files (mandatory).
+ *          - `-nord`: Finite element basis order (1-6, mandatory).
+ *          - `-mode`: Simulation mode ("CSEM" or "MT", mandatory).
+ *          - `-source_filename`: Path to the source definition file (mandatory).
+ *          Stores the parsed values in the `params` struct. Validates mandatory parameters
+ *          and the range/type of `nord` and `mode`. Stores the MPI size. Creates the output directory.
+ */
+
 PetscErrorCode readUserParams(Params *params, PetscMPIInt size) {
 
     PetscFunctionBeginUser;

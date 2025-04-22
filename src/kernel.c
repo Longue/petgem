@@ -30,6 +30,19 @@ static char help[] = "PETGEM kernel for 3D CSEM modeling using high-order vector
 #include "extrae_user_events.h"  
 #endif
 
+/**
+ * @brief Main execution routine for PETGEM.
+ * @param argc Argument count.
+ * @param argv Argument vector.
+ * @return int 0 on success, non-zero on failure.
+ * @details Initializes PETSc, parses command-line arguments (including `--version`).
+ *          Prints the header. Reads user parameters, sets up sources, imports the grid
+ *          and resistivity, sets up the DM sections and grid structure, assembles the
+ *          linear system (A, B, G), solves the system (AX=B) using KSP, performs
+ *          post-processing (computes fields at receivers), prints the footer,
+ *          and finalizes PETSc, freeing allocated memory. Includes Extrae instrumentation hooks if compiled with USE_EXTRAE.
+ * @note Currently, the solve and postprocessing steps are commented out in the source.
+ */
 int main(int argc, char **argv)
 {
 
