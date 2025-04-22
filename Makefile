@@ -33,24 +33,50 @@ $(TARGET): $(OBJS)
 %.o: %.c
 	${PETSC_COMPILE_SINGLE} $(CFLAGS) $(I_CFLAGS) $(E_FLAGS) $< -o $@
 
-# Clean rule
-clean::
-	@echo ">>> Limpiando archivos de compilación PETSc/kernel..."
-	rm -f $(OBJS) $(TARGET) # Asumiendo que OBJS y TARGET están definidos arriba
-	# O lo que sea que limpie el ejecutable 'kernel' y sus objetos
+# --- Targets de Documentación ---
 
-	@echo ">>> Limpiando directorios de documentación (build y doxygen)..."
-	rm -rf docs/build/* docs/doxygen/*
-	@echo ">>> Limpieza completada."
-
-## CI RULES
-# AutoDoc
 DOXYFILE = Doxyfile
+SPHINX_PYTHON = python3 # O simplemente python si está en el PATH
+SPHINX_SCRIPT_DIR = scripts/generate_index
+SPHINX_GENERATOR_SCRIPT = $(SPHINX_SCRIPT_DIR)/generate_sphinx_structure.py
 SPHINX_SOURCE_DIR = docs/source
 SPHINX_BUILD_DIR = docs/build
+SPHINX_BUILD = $(SPHINX_PYTHON) -m sphinx # Forma recomendada de llamar a Sphinx
 
-docs: $(SRCS) include/*.h $(DOXYFILE) $(SPHINX_SOURCE_DIR)/*.rst $(SPHINX_SOURCE_DIR)/conf.py
-	@echo "Generating Doxygen XML..."
+# Target para generar la documentación completa
+# Se quitan las dependencias de archivos fuente específicos para ejecutar siempre
+# que se llame, confiando en 'make clean' para forzar reconstrucción.
+docs: run_doxygen run_script_generator run_sphinx
+
+run_doxygen:
+	@echo ">>> [DOCS] Generando Doxygen XML..."
 	doxygen $(DOXYFILE)
-	@echo "Building Sphinx HTML documentation..."
-	sphinx-build -b html $(SPHINX_SOURCE_DIR) $(SPHINX_BUILD_DIR)/html
+
+run_script_generator:
+	@echo ">>> [DOCS] Ejecutando script generador de estructura Sphinx..."
+	$(SPHINX_PYTHON) $(SPHINX_GENERATOR_SCRIPT)
+
+run_sphinx:
+	@echo ">>> [DOCS] Construyendo documentación Sphinx HTML..."
+	$(SPHINX_BUILD) -b html $(SPHINX_SOURCE_DIR) $(SPHINX_BUILD_DIR)/html
+	@echo ">>> [DOCS] Documentación HTML generada en $(SPHINX_BUILD_DIR)/html"
+
+
+# --- Targets de Limpieza ---
+
+# Limpia solo los artefactos del kernel
+clean_kernel:
+	@echo ">>> [CLEAN] Limpiando archivos de compilación PETSc/kernel..."
+	rm -f $(OBJS) $(TARGET)
+	@echo ">>> [CLEAN] Artefactos del kernel eliminados."
+
+# Limpia solo los artefactos de documentación
+clean_doc:
+	@echo ">>> [CLEAN] Limpiando directorios de documentación (build y doxygen)..."
+	rm -rf $(SPHINX_BUILD_DIR)/* docs/doxygen/*
+	@echo ">>> [CLEAN] Artefactos de documentación eliminados."
+
+clean_all: clean_kernel clean_doc
+	@echo ">>> [CLEAN_ALL] Ejecutando limpieza de PETSc (si existe)..."
+	$(MAKE) clean # Llama al 'clean' (probablemente de PETSc)
+	@echo ">>> [CLEAN_ALL] Limpieza completa finalizada."

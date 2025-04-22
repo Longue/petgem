@@ -1,60 +1,39 @@
 # .readthedocs.yaml
+# Configuración para Read the Docs v2 - Usando Makefile (SIN CAMBIOS NECESARIOS)
 
-# Versión del formato de configuración de Read the Docs
 version: 2
 
-# Configuración de Sphinx
-# Indica dónde encontrar el archivo conf.py
+# ---- Configuración de Sphinx ----
 sphinx:
   configuration: docs/source/conf.py
-  # fail_on_warning: true # Descomenta esto si quieres que el build falle si Sphinx emite warnings
+  # fail_on_warning: true # Opcional
 
-# Entorno de construcción que usará Read the Docs
+# ---- Entorno de Construcción ----
 build:
-  # Sistema operativo base
   os: ubuntu-22.04
-  # Herramientas base a instalar (y sus versiones)
   tools:
-    python: "3.10" # Puedes ajustar la versión de Python si necesitas otra
+    python: "3.10"
 
-  # Paquetes del sistema (APT) a instalar ANTES de construir
-  # ¡Esencial para instalar Doxygen y Graphviz!
   apt_packages:
     - doxygen
-    - graphviz # Para gráficos de Doxygen, si los usas
+    - graphviz
+    - make # Asegura que make esté disponible
 
-  # Trabajos/comandos a ejecutar para construir la documentación
   jobs:
-    # Pasos a ejecutar ANTES del paso principal de build
     pre_build:
-      # Es buena práctica limpiar salidas anteriores por si acaso
-      - echo "Limpiando directorios de salida anteriores..."
-      # $READTHEDOCS_OUTPUT es una variable de entorno de RTD que apunta al dir de salida
-      - rm -rf $READTHEDOCS_OUTPUT/html
-      - rm -rf docs/doxygen # Limpia la salida XML de Doxygen anterior
+      - echo "Limpiando salidas anteriores usando make clean..."
+      # Ejecuta el target 'clean' (que ahora llama a clean_doc)
+      - make clean_all
 
-    # El paso principal de construcción (ejecutado después de pre_build)
-    # Por defecto, RTD intentaría ejecutar 'sphinx-build' aquí.
-    # Al definir 'build' explícitamente, tomamos control total.
     build:
-      # 1. Ejecuta Doxygen para generar el XML
-      - echo "Ejecutando Doxygen..."
-      - doxygen Doxyfile
+      - echo "Construyendo documentación usando make docs..."
+      # Ejecuta el target 'docs' (que ahora llama a los sub-targets en orden)
+      - make docs
+      # (Aún asumimos que RTD encontrará la salida en docs/build/html)
 
-      # 2. Ejecuta Sphinx para generar el HTML usando el XML de Doxygen
-      - echo "Construyendo documentación Sphinx..."
-      # Usamos sphinx-build directamente, especificando directorios fuente y de salida
-      # Esto asegura que se usen las rutas correctas dentro del entorno de RTD
-      - sphinx-build -b html docs/source/ $READTHEDOCS_OUTPUT/html
-      # Alternativa si prefieres usar el Makefile de la raíz (menos común en RTD):
-      # - make docs # Si el target 'docs' en tu Makefile principal hace doxygen Y sphinx-build
-
-# Configuración de Python
-# Le dice a RTD cómo instalar las dependencias de Python
+# ---- Configuración de Python ----
 python:
-  # Instala los paquetes listados en docs/requirements.txt
   install:
     - requirements: docs/requirements.txt
-    # Si tuvieras tu propio paquete Python que la documentación necesita importar:
-    # - method: pip
-    #   path: . # Asume setup.py o pyproject.toml en la raíz
+    # Añade dependencias de tu script si es necesario
+    # - requirements: scripts/generate_index/requirements.txt
