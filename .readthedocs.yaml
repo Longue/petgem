@@ -1,39 +1,25 @@
 # .readthedocs.yaml
-# Configuración para Read the Docs v2 - Usando Makefile (SIN CAMBIOS NECESARIOS)
-
 version: 2
 
-# ---- Configuración de Sphinx ----
-sphinx:
-  configuration: docs/source/conf.py
-  # fail_on_warning: true # Opcional
-
-# ---- Entorno de Construcción ----
 build:
-  os: ubuntu-22.04
+  os: ubuntu-20.04
   tools:
-    python: "3.10"
-
+    python: "3.8"
   apt_packages:
     - doxygen
     - graphviz
-    - make # Asegura que make esté disponible
-
   jobs:
     pre_build:
-      - echo "Limpiando salidas anteriores usando make clean..."
-      # Ejecuta el target 'clean' (que ahora llama a clean_doc)
-      - make clean_all
+      - echo "Pre build"
+      - echo "Cleaning..."
+      - rm -rf $READTHEDOCS_OUTPUT/html
+      - rm -rf docs/doxygen
+      - echo "Doxygen..."
+      - doxygen Doxyfile
 
-    build:
-      - echo "Construyendo documentación usando make docs..."
-      # Ejecuta el target 'docs' (que ahora llama a los sub-targets en orden)
-      - make docs
-      # (Aún asumimos que RTD encontrará la salida en docs/build/html)
+sphinx:
+  configuration: docs/source/conf.py
 
-# ---- Configuración de Python ----
 python:
   install:
-    - requirements: docs/requirements.txt
-    # Añade dependencias de tu script si es necesario
-    # - requirements: scripts/generate_index/requirements.txt
+    - requirements: docs/requirements.txt    
