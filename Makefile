@@ -73,7 +73,7 @@ clean_kernel:
 # Limpia solo los artefactos de documentación
 clean_doc:
 	@echo ">>> [CLEAN] Limpiando directorios de documentación (build y doxygen)..."
-	rm -rf $(SPHINX_BUILD_DIR)/* docs/doxygen/*
+	rm -rf $(SPHINX_BUILD_DIR)/* docs/doxygen/* docs/source/readme/*
 	@echo ">>> [CLEAN] Artefactos de documentación eliminados."
 
 clean_all: clean_kernel clean_doc

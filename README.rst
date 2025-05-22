@@ -46,6 +46,39 @@ petsc4py package. **petgem** allow users to specify high-order edge-based variat
 forms of H(curl) for the simulation of electromagnetic fields in realistic
 3D CSEM/MT surveys with accuracy, reliability and efficiency.
 
+
+..
+   rtd-sync-config::
+   :target: docs/source/readme/installation.rst
+   :toctree_entry: Installation
+
+Installation
+------------
+
+..
+   rtd-sync-config::
+   :target: docs/source/readme/usage.rst
+   :toctree_entry: Usage
+
+Usage
+-----
+
+..
+   rtd-sync-config::
+   :target: docs/source/readme/publications.rst
+   :toctree_entry: Publications
+
+Publications
+-------------
+
+..
+   rtd-sync-config::
+   :target: docs/source/readme/contributing.rst
+   :toctree_entry: Contributing
+
+Contributing
+------------
+
 ..
    rtd-sync-config::
    :target: docs/source/readme/more_information.rst
