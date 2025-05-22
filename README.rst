@@ -31,7 +31,8 @@
    :alt: petgem-license
 
 
-.. rtd-sync-config::
+..
+   rtd-sync-config::
    :target: docs/source/readme/about_petgem.rst
    :title_in_doc: What is PETGEM?
    :toctree_entry: About PETGEM
@@ -45,7 +46,8 @@ petsc4py package. **petgem** allow users to specify high-order edge-based variat
 forms of H(curl) for the simulation of electromagnetic fields in realistic
 3D CSEM/MT surveys with accuracy, reliability and efficiency.
 
-.. rtd-sync-config::
+..
+   rtd-sync-config::
    :target: docs/source/readme/more_information.rst
    :toctree_entry: More Information
 
@@ -76,7 +78,8 @@ Or, if you prefer the PDF format by typing:
 
 Requests and contributions are welcome.
 
-.. rtd-sync-config::
+..
+   rtd-sync-config::
    :target: docs/source/readme/dependencies.rst
    :toctree_entry: Dependencies
 
@@ -103,7 +106,8 @@ Dependencies
 
 - A recent h5py\_ release.
 
-.. rtd-sync-config::
+..
+   rtd-sync-config::
    :target: docs/source/readme/citation.rst
    :toctree_entry: Citation
 
@@ -124,7 +128,8 @@ and `Castillo-Reyes, O. et al. (2018) <https://doi.org/10.1016/j.cageo.2018.07.0
   Geosciences, vol 119: 123-136. ISSN 0098-3004,  Elsevier.
   https://doi.org/10.1016/j.cageo.2018.07.005
 
-.. rtd-sync-config::
+..
+   rtd-sync-config::
    :target: docs/source/readme/license.rst
    :toctree_entry: License
 
