@@ -1,12 +1,22 @@
 # PETGEM Makefile
 
+# === Paths and Settings ===
+
 # Target executable
 TARGET := build/kernel
-all: $(TARGET)
+# List of source files
+SRCS := src/kernel.c src/common.c src/inputs.c src/source.c src/grid.c src/assembly.c src/hvfem.c src/solver.c src/postprocessing.c
+# List of object files
+OBJS := $(SRCS:.c=.o)
 
+# Our include folder
+I_CFLAGS := -Iinclude
+
+# PETSc variables
 include ${PETSC_DIR}/lib/petsc/conf/variables
 include ${PETSC_DIR}/lib/petsc/conf/rules
 
+# === Optional Extrae Support ===
 # Conditional flag for Extrae support ( set 1 to include Extrae, 0 to exclude)
 USE_EXTRAE ?= 0
 
@@ -16,67 +26,140 @@ ifeq ($(USE_EXTRAE), 1)
     E_LDFLAGS := -L$(EXTRAE_HOME)/lib -lmpitrace
 endif
 
-# Our include folder
-I_CFLAGS := -Iinclude
-
-# List of source files
-SRCS := src/kernel.c src/common.c src/inputs.c src/source.c src/grid.c src/assembly.c src/hvfem.c src/solver.c src/postprocessing.c
-
-# List of object files
-OBJS := $(SRCS:.c=.o)
+# === Build Target ===
+all: build $(TARGET) # Asegura que 'build' existe antes de compilar
 
 # Compile all object files and generate the final executable
 $(TARGET): $(OBJS)
 	$(CLINKER) $^ -o $@ $(CFLAGS) $(E_LDFLAGS) $(PETSC_LIB)
 
 # Rule to compile each source file (uses PETSc's makefile variable)
+# These objects are for the main application, placed in their source directories.
 %.o: %.c
 	${PETSC_COMPILE_SINGLE} $(CFLAGS) $(I_CFLAGS) $(E_FLAGS) $< -o $@
 
-# --- Targets de Documentación ---
+# Create build directory
+build:
+	@mkdir -p build
 
-DOXYFILE = Doxyfile
-SPHINX_PYTHON = python3 # O simplemente python si está en el PATH
-SPHINX_SCRIPT_DIR = scripts/generate_index
-SPHINX_GENERATOR_SCRIPT = $(SPHINX_SCRIPT_DIR)/generate_sphinx_structure.py
-SPHINX_SOURCE_DIR = docs/source
-SPHINX_BUILD_DIR = docs/build
-SPHINX_BUILD = $(SPHINX_PYTHON) -m sphinx # Forma recomendada de llamar a Sphinx
+# === Unit Tests ===
+UNITY_DIR = /opt/unity/src
+TEST_SRCS := $(wildcard tests/test_*.c)
+TEST_BIN := build/test_runner
 
-# Target para generar la documentación completa
-# Se quitan las dependencias de archivos fuente específicos para ejecutar siempre
-# que se llame, confiando en 'make clean' para forzar reconstrucción.
-docs: run_doxygen run_script_generator run_sphinx
+# Source file for Unity framework (it's compiled along with tests)
+TEST_UNITY_SRC := $(UNITY_DIR)/unity.c
 
-run_doxygen:
-	@echo ">>> [DOCS] Generando Doxygen XML..."
+# Application source files that contain a 'main' function for the main executable.
+APP_MAIN_SRCS := src/kernel.c
+
+# Application source files used by the test runner (excluding the main app source).
+APP_SRCS_FOR_TEST_BUILD := $(filter-out $(APP_MAIN_SRCS), $(SRCS))
+
+# --- Test Compilation and Linker Flags ---
+# Include flags for PETSc, our project's include, and Unity
+_TEST_INCLUDE_FLAGS := $(PETSC_CC_INCLUDES) -Iinclude -I$(UNITY_DIR)
+
+# Coverage flags (compile and link)
+_COVERAGE_COMPILE_FLAGS := -fprofile-arcs -ftest-coverage -O0
+_COVERAGE_LINK_FLAGS := -lgcov --coverage
+
+# Unity specific configuration flags
+_UNITY_CONFIG_FLAGS := -DUNITY_INCLUDE_DOUBLE # For double support in Unity
+
+# Combined CFLAGS for compiling test source files
+TEST_SPECIFIC_CFLAGS := $(_TEST_INCLUDE_FLAGS) $(_COVERAGE_COMPILE_FLAGS) $(_UNITY_CONFIG_FLAGS)
+
+# --- Objects for the Test Runner (compiled into build/) ---
+# Convert .c paths to .o paths within the build/ directory
+TEST_OBJ_FILES := $(patsubst tests/%.c,build/%.o,$(TEST_SRCS))
+APP_SOURCE_TEST_OBJ_FILES := $(patsubst src/%.c,build/%.o,$(APP_SRCS_FOR_TEST_BUILD))
+UNITY_OBJ_FILE := build/unity.o
+
+# All objects that go into the test runner executable
+ALL_TEST_RUNNER_OBJS := $(TEST_OBJ_FILES) $(APP_SOURCE_TEST_OBJ_FILES) $(UNITY_OBJ_FILE)
+
+# Rules to compile source files for the test runner into 'build/'
+build/%.o: tests/%.c | build
+	@echo "  [TESTS] Compiling $< to $@"
+	$(CLINKER) $(TEST_SPECIFIC_CFLAGS) $(I_CFLAGS) -c $< -o $@
+
+build/%.o: src/%.c | build
+	@echo "  [TESTS] Compiling $< to $@"
+	$(CLINKER) $(TEST_SPECIFIC_CFLAGS) $(I_CFLAGS) -c $< -o $@
+
+build/unity.o: $(UNITY_DIR)/unity.c | build
+	@echo "  [TESTS] Compiling $< to $@"
+	$(CLINKER) $(TEST_SPECIFIC_CFLAGS) $(I_CFLAGS) -c $< -o $@
+
+# --- Test Workflow Targets ---
+compile_tests: $(TEST_BIN)
+	@echo ">>> [TESTS] Test runner $(TEST_BIN) is up to date or has been (re)built."
+$(TEST_BIN): $(ALL_TEST_RUNNER_OBJS)
+	@echo ">>> [TESTS] Linking test runner: $@"
+	$(CLINKER) $(ALL_TEST_RUNNER_OBJS) -o $@ $(LDFLAGS) $(_COVERAGE_LINK_FLAGS) $(PETSC_LIB)
+run_tests: compile_tests
+	@echo ">>> [TESTS] Running tests..."
+	./$(TEST_BIN)
+test: run_tests
+
+# Target to generate the COVERAGE report
+coverage: build clean_coverage run_tests
+	@echo ">>> [COVERAGE] Generating LCOV report in build/ directory..."
+	lcov --capture --directory build/ --output-file build/coverage.info --rc lcov_branch_coverage=1
+	genhtml build/coverage.info --output-directory build/coverage-html --branch-coverage
+	@echo ">>> [COVERAGE] HTML report generated at build/coverage-html/index.html"
+
+# Clean coverage-related files AND test-specific object files
+clean_coverage: build
+	@echo ">>> [CLEAN] Removing coverage report files and test object files..."
+	rm -f build/coverage.info
+	rm -rf build/coverage-html
+	find build/ -name '*.gcda' -delete
+	find build/ -name '*.gcno' -delete
+	if [ -d src ]; then find src/ -name '*.gcda' -delete; find src/ -name '*.gcno' -delete; fi
+	if [ -d tests ]; then find tests/ -name '*.gcda' -delete; find tests/ -name '*.gcno' -delete; fi
+	rm -f $(ALL_TEST_RUNNER_OBJS)
+
+# === Documentation ===
+DOXYFILE := Doxyfile
+SPHINX_PY := python3 # Or just python if it's in your PATH and configured for Sphinx
+SPHINX_GEN_SCRIPT_PATH := scripts/auto_doc/sync_rtd_docs.py # Full path to your generator script
+SPHINX_SOURCE_DIR := docs/source
+SPHINX_BUILD_DIR := docs/build
+SPHINX_BUILD_CMD := $(SPHINX_PY) -m sphinx # Recommended way to invoke Sphinx
+SPHINX_OUT := $(SPHINX_BUILD_DIR)/html
+
+# Target to generate all documentation
+# Removed specific source file dependencies to always run when called;
+# rely on 'make clean_docs' to force a rebuild.
+docs: doxygen readme_sync sphinx_html
+
+# Generate Doxygen XML documentation
+doxygen:
+	@echo ">>> [DOCS] Generating Doxygen XML..."
 	doxygen $(DOXYFILE)
 
-run_script_generator:
-	@echo ">>> [DOCS] Ejecutando script generador de estructura Sphinx..."
-	$(SPHINX_PYTHON) $(SPHINX_GENERATOR_SCRIPT)
+# Sync/generate structure for Sphinx (formerly run_script_generator)
+readme_sync:
+	@echo ">>> [DOCS] Running README sync (readme_sync)..."
+	$(SPHINX_PY) $(SPHINX_GEN_SCRIPT_PATH)
 
-run_sphinx:
-	@echo ">>> [DOCS] Construyendo documentación Sphinx HTML..."
-	$(SPHINX_BUILD) -b html $(SPHINX_SOURCE_DIR) $(SPHINX_BUILD_DIR)/html
-	@echo ">>> [DOCS] Documentación HTML generada en $(SPHINX_BUILD_DIR)/html"
+# Build HTML documentation with Sphinx
+sphinx_html:
+	@echo ">>> [DOCS] Building Sphinx HTML documentation..."
+	LC_ALL=C.UTF-8 LANG=C.UTF-8 $(SPHINX_BUILD_CMD) -b html $(SPHINX_SOURCE_DIR) $(SPHINX_BUILD_DIR)/html
+	@echo ">>> [DOCS] HTML documentation generated in $(SPHINX_BUILD_DIR)/html"
 
-
-# --- Targets de Limpieza ---
-
-# Limpia solo los artefactos del kernel
-clean_kernel:
-	@echo ">>> [CLEAN] Limpiando archivos de compilación PETSc/kernel..."
-	rm -f $(OBJS) $(TARGET)
-	@echo ">>> [CLEAN] Artefactos del kernel eliminados."
-
-# Limpia solo los artefactos de documentación
-clean_doc:
-	@echo ">>> [CLEAN] Limpiando directorios de documentación (build y doxygen)..."
-	rm -rf $(SPHINX_BUILD_DIR)/* docs/doxygen/* docs/source/readme/*
-	@echo ">>> [CLEAN] Artefactos de documentación eliminados."
-
-clean_all: clean_kernel clean_doc
-	@echo ">>> [CLEAN_ALL] Ejecutando limpieza de PETSc (si existe)..."
-	$(MAKE) clean # Llama al 'clean' (probablemente de PETSc)
-	@echo ">>> [CLEAN_ALL] Limpieza completa finalizada."
+# === Cleaning ===
+clean_all:
+	@echo ">>> [CLEAN] Removing build artifacts..."
+	rm -f $(OBJS) $(TARGET) $(TEST_BIN)
+	@echo ">>> [CLEAN] Cleaning documentation..."
+	rm -rf $(SPHINX_OUT)/* docs/doxygen/* docs/source/readme/*
+	@echo ">>> [CLEAN] Running PETSc clean..."
+	$(MAKE) clean
+	@echo ">>> [CLEAN] Removing coverage report files..."
+	$(MAKE) clean_coverage
+	@echo ">>> [CLEAN] Removing build folder..."
+	rm -rf ./build

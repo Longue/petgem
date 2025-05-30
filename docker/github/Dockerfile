@@ -49,6 +49,20 @@ RUN pip3 install --no-cache-dir \
     sphinx_rtd_theme
 
 # ------------------------------------------------------------------------------- #
+# Install PETSc
+# ------------------------------------------------------------------------------- #
+RUN mkdir -p ${PETSC_DIR} && \
+    cd ${PETSC_DIR} && \
+    git clone -b release https://gitlab.com/petsc/petsc.git . && \
+    ./configure --with-cc=gcc --with-cxx=g++ --with-fc=gfortran --download-mpich --download-fblaslapack \
+                --with-scalar-type=complex --download-mumps --download-scalapack --download-ptscotch    \
+                --download-cmake --with-debugging=1 --download-hdf5 --download-triangle                 \
+                --PETSC_ARCH=${PETSC_ARCH} && \
+    make all check && \
+    # Install petsc4py
+    pip3 install --no-cache-dir ./src/binding/petsc4py
+
+# ------------------------------------------------------------------------------- #
 # Install Extrae and its dependencies 
 # ------------------------------------------------------------------------------- #
 # Common directory for Extrae and its components
@@ -104,20 +118,6 @@ RUN cd /tmp && \
                 --without-dyninst && \
     make && make install && \
     cd / && rm -rf /tmp/extrae
-
-# ------------------------------------------------------------------------------- #
-# Install PETSc
-# ------------------------------------------------------------------------------- #
-RUN mkdir -p ${PETSC_DIR} && \
-    cd ${PETSC_DIR} && \
-    git clone -b release https://gitlab.com/petsc/petsc.git . && \
-    ./configure --with-cc=gcc --with-cxx=g++ --with-fc=gfortran --download-mpich --download-fblaslapack \
-                --with-scalar-type=complex --download-mumps --download-scalapack --download-ptscotch    \
-                --download-cmake --with-debugging=1 --download-hdf5 --download-triangle                 \
-                --PETSC_ARCH=${PETSC_ARCH} && \
-    make all check && \
-    # Install petsc4py
-    pip3 install --no-cache-dir ./src/binding/petsc4py
 
 # ------------------------------------------------------------------------------- #
 # Install Unity (Framework para tests en C)

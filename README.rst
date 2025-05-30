@@ -30,13 +30,6 @@
    :target: https://opensource.org/licenses/BSD-3-Clause
    :alt: petgem-license
 
-
-..
-   rtd-sync-config::
-   :target: docs/source/readme/about_petgem.rst
-   :title_in_doc: What is PETGEM?
-   :toctree_entry: About PETGEM
-
 Parallel Edge-based Tool for Geophysical Electromagnetic Modelling
 ------------------------------------------------------------------
 **petgem** is a Python code for the scalable solution of electromagnetic diffusion fields on tetrahedral
@@ -48,7 +41,7 @@ forms of H(curl) for the simulation of electromagnetic fields in realistic
 
 
 ..
-   rtd-sync-config::
+   rtrd-sync-config::
    :target: docs/source/readme/installation.rst
    :toctree_entry: Installation
 
@@ -56,7 +49,7 @@ Installation
 ------------
 
 ..
-   rtd-sync-config::
+   rtrd-sync-config::
    :target: docs/source/readme/usage.rst
    :toctree_entry: Usage
 
@@ -64,7 +57,7 @@ Usage
 -----
 
 ..
-   rtd-sync-config::
+   rtrd-sync-config::
    :target: docs/source/readme/publications.rst
    :toctree_entry: Publications
 
@@ -72,7 +65,7 @@ Publications
 -------------
 
 ..
-   rtd-sync-config::
+   rtrd-sync-config::
    :target: docs/source/readme/contributing.rst
    :toctree_entry: Contributing
 
@@ -80,7 +73,7 @@ Contributing
 ------------
 
 ..
-   rtd-sync-config::
+   rtrd-sync-config::
    :target: docs/source/readme/more_information.rst
    :toctree_entry: More Information
 
@@ -112,7 +105,7 @@ Or, if you prefer the PDF format by typing:
 Requests and contributions are welcome.
 
 ..
-   rtd-sync-config::
+   rtrd-sync-config::
    :target: docs/source/readme/dependencies.rst
    :toctree_entry: Dependencies
 
@@ -140,7 +133,7 @@ Dependencies
 - A recent h5py\_ release.
 
 ..
-   rtd-sync-config::
+   rtrd-sync-config::
    :target: docs/source/readme/citation.rst
    :toctree_entry: Citation
 
@@ -162,7 +155,7 @@ and `Castillo-Reyes, O. et al. (2018) <https://doi.org/10.1016/j.cageo.2018.07.0
   https://doi.org/10.1016/j.cageo.2018.07.005
 
 ..
-   rtd-sync-config::
+   rtrd-sync-config::
    :target: docs/source/readme/license.rst
    :toctree_entry: License
 
