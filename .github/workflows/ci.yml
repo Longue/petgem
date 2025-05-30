@@ -37,7 +37,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .  # Root directory of your repo (where your Dockerfile is)
-          file: ./docker/github/Dockerfile # Path to your Dockerfile (adjust if not in the root)
+          file: ./docker/user/Dockerfile # Path to your Dockerfile (adjust if not in the root)
           # We are not pushing the image to a registry, just building and using it locally
           push: false
           # Tag for the image to reference it in subsequent steps
