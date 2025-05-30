@@ -53,13 +53,6 @@ jobs:
       # Now that the 'petgem-ci-env:latest' image is built and loaded,
       # run make commands INSIDE containers based on that image.
 
-      - name: Debug 'make' inside container
-        run: |
-          docker run --rm \
-            --entrypoint "" \
-            petgem-ci-env:latest \
-            bash -c "echo '--- ID ---'; id; echo '--- PWD ---'; pwd; echo '--- LS /APP ---'; ls -la /app || echo '/app not found or empty'; echo '--- PATH ---'; echo \$PATH; echo '--- which make ---'; which make; echo '--- ls -l \$(which make) ---'; ls -l \$(which make) || echo 'make not found by which'; echo '--- ls -l /usr/bin/make ---'; ls -l /usr/bin/make || echo '/usr/bin/make not found directly'; echo '--- file \$(which make) ---'; file \$(which make) || echo 'make not found by which for file cmd'; echo '--- file /usr/bin/make ---'; file /usr/bin/make || echo '/usr/bin/make not found directly for file cmd'; echo '--- make --version ---'; make --version || echo 'make --version failed'"
-    
       # Step 5: Compile the project and tests INSIDE the Docker container
       - name: Compile project and tests (in Docker)
         run: |

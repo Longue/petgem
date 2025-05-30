@@ -127,6 +127,8 @@ RUN git clone https://github.com/ThrowTheSwitch/Unity.git /opt/unity
 # Install sphinix-rtd-theme
 RUN pip3 install --no-cache-dir sphinx sphinx-rtd-theme
 
+ENV PATH="${PETSC_DIR}/${PETSC_ARCH}/bin:${PATH}"
+
 # Define entry point
 WORKDIR /workspace
-ENTRYPOINT ["bash"]
+CMD [ "bash" ]
