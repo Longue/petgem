@@ -157,12 +157,17 @@ sphinx_html:
 	LC_ALL=C.UTF-8 LANG=C.UTF-8 $(SPHINX_BUILD_CMD) -b html $(SPHINX_SOURCE_DIR) $(SPHINX_BUILD_DIR)/html
 	@echo ">>> [DOCS] HTML documentation generated in $(SPHINX_BUILD_DIR)/html"
 
+# Doc clean rule
+clean_doc:
+	@echo ">>> [CLEAN] Cleaning documentation..."
+	rm -rf $(SPHINX_OUT)/* docs/doxygen/* docs/source/api/* docs/source/readme/*
+
+
 # === Cleaning ===
 clean_all:
 	@echo ">>> [CLEAN] Removing build artifacts..."
 	rm -f $(OBJS) $(TARGET) $(TEST_BIN)
-	@echo ">>> [CLEAN] Cleaning documentation..."
-	rm -rf $(SPHINX_OUT)/* docs/doxygen/* docs/source/api/* docs/source/readme/*
+	$(MAKE) clean_doc
 	@echo ">>> [CLEAN] Running PETSc clean..."
 	$(MAKE) clean
 	@echo ">>> [CLEAN] Removing coverage report files..."
