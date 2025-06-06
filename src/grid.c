@@ -120,21 +120,21 @@ PetscErrorCode importGrid(DM *odm, Vec *resistivity_output, Params params)
 
 /**
  * @brief Sets up the DMPlex object with appropriate sections for H(curl) and H1 finite elements.
- * @param[in,out] dm Pointer to the DMPlex object to be configured.
+ *
+ * Configures the primary DM for H(curl) elements of order @p params.nord. Concretely:
+ * - Sets the number of fields to 1.
+ * - Creates a "Boundary" label and marks boundary faces (ID 100).
+ * - Computes DOFs per vertex, edge, face, and volume based on @p params.nord.
+ * - Creates the PetscSection for H(curl) elements, applying boundary conditions to the marked faces.
+ * - Computes and stores local and global counts of vertices, edges, faces, and cells in the @p grid struct.
+ * - Stores DOF counts, element start/end indices, and dimension in the @p grid struct.
+ * - Prints mesh statistics.
+ *
+ * @param[inout] dm Pointer to the DMPlex object to be configured.
  * @param[out] grid Pointer to the Grid struct to be populated with mesh statistics and DOF info.
- * @param[in] params A Params struct containing simulation parameters, especially the basis order (`nord`).
- * @return PetscErrorCode PETSC_SUCCESS on success.
- * @details Configures the primary DM for H(curl) elements of order `params.nord`.
- *          - Sets the number of fields to 1.
- *          - Creates a "Boundary" label and marks boundary faces (ID 100).
- *          - Computes DOFs per vertex, edge, face, and volume based on `params.nord`.
- *          - Creates the PetscSection for H(curl) elements, applying boundary conditions to the marked faces.
- *          - Clones the DM to create `grid->H1dm` and sets up its section for H1 elements (currently hardcoded for order 1).
- *          - Computes and stores local and global counts of vertices, edges, faces, and cells in the `grid` struct.
- *          - Stores DOF counts, element start/end indices, and dimension in the `grid` struct.
- *          - Prints mesh statistics.
+ * @param[in] params A Params struct containing simulation parameters, especially the basis order (@p params.nord).
+ * @return PetscErrorCode PETSC_SUCCESS on success, or an error code otherwise.
  */
-
 PetscErrorCode setupGrid(DM *dm, Grid *grid, Params params) {
 
 	PetscFunctionBeginUser;

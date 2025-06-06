@@ -33,20 +33,18 @@
 
 /**
  * @brief Computes electric (E) and magnetic (H) fields at specified receiver locations.
+ *
+ * The computed electric (E) and magnetic (H) field components for each source are saved
+ * to separate HDF5 files. Metadata about the simulation is also written as attributes
+ * to the output files.
+ *
  * @param[in] dm The DMPlex object representing the mesh topology and H(curl) discretization.
  * @param[in] X The solution matrix (Mat), where each column corresponds to the solution vector for a specific source.
  * @param[in] grid A Grid struct containing mesh statistics and DOF information.
  * @param[in] sources A setSource struct containing source parameters (frequency, positions, etc.).
  * @param[in] params A Params struct containing simulation parameters (basis order, mode, output settings, etc.).
- * @return PetscErrorCode PETSC_SUCCESS on success.
- * @details This function reads receiver coordinates from a file specified in `params`.
- *          It locates each receiver within the mesh using `DMLocatePoints`. For each source's solution vector
- *          (column of X), it interpolates the electric field (E) using the H(curl) basis functions and
- *          computes the magnetic field (H) using the curl of the basis functions at the receiver locations.
- *          The computed Ex, Ey, Ez, Hx, Hy, Hz field components for each source are saved to separate HDF5 files.
- *          Metadata about the simulation is also written as attributes to the output files.
+ * @return PetscErrorCode PETSC_SUCCESS on success, or an error code otherwise.
  */
-
 PetscErrorCode computeFields(DM dm, Mat X, Grid grid, setSource sources, Params params){
     PetscFunctionBeginUser;
     MPI_Comm comm = PetscObjectComm((PetscObject)dm);

@@ -125,6 +125,7 @@ clean_coverage: build
 DOXYFILE := Doxyfile
 SPHINX_PY := python3 # Or just python if it's in your PATH and configured for Sphinx
 SPHINX_GEN_SCRIPT_PATH := scripts/auto_doc/sync_rtd_docs.py # Full path to your generator script
+SPHINX_API_SCRIPT_PATH := scripts/auto_doc/api_rst_generator.py # Full path to your generator script
 SPHINX_SOURCE_DIR := docs/source
 SPHINX_BUILD_DIR := docs/build
 SPHINX_BUILD_CMD := $(SPHINX_PY) -m sphinx # Recommended way to invoke Sphinx
@@ -133,14 +134,19 @@ SPHINX_OUT := $(SPHINX_BUILD_DIR)/html
 # Target to generate all documentation
 # Removed specific source file dependencies to always run when called;
 # rely on 'make clean_docs' to force a rebuild.
-docs: doxygen readme_sync sphinx_html
+docs: doxygen api_generator readme_sync sphinx_html
 
 # Generate Doxygen XML documentation
 doxygen:
 	@echo ">>> [DOCS] Generating Doxygen XML..."
 	doxygen $(DOXYFILE)
 
-# Sync/generate structure for Sphinx (formerly run_script_generator)
+# Generate structure for Sphinx
+api_generator:
+	@echo ">>> [DOCS] Running API generator (api_generator)..."
+	$(SPHINX_PY) $(SPHINX_API_SCRIPT_PATH)
+
+# Sync readme with Sphinx
 readme_sync:
 	@echo ">>> [DOCS] Running README sync (readme_sync)..."
 	$(SPHINX_PY) $(SPHINX_GEN_SCRIPT_PATH)
@@ -156,7 +162,7 @@ clean_all:
 	@echo ">>> [CLEAN] Removing build artifacts..."
 	rm -f $(OBJS) $(TARGET) $(TEST_BIN)
 	@echo ">>> [CLEAN] Cleaning documentation..."
-	rm -rf $(SPHINX_OUT)/* docs/doxygen/* docs/source/readme/*
+	rm -rf $(SPHINX_OUT)/* docs/doxygen/* docs/source/api/* docs/source/readme/*
 	@echo ">>> [CLEAN] Running PETSc clean..."
 	$(MAKE) clean
 	@echo ">>> [CLEAN] Removing coverage report files..."

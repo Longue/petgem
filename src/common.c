@@ -38,37 +38,21 @@
 // =============================================================================
 
 /**
- * @brief Prints the PETGEM project header to standard output.
- * @return PetscErrorCode PETSC_SUCCESS on successful printing.
- * @details Prints a formatted header containing the project name, description,
- *          repository/website links, author/affiliation information, and the current year.
- *          Uses PETSC_COMM_WORLD for parallel printing.
+ * @brief Prints a header with PETGEM project information and the current year.
+ *
+ * This function prints a formatted header to the console, containing
+ * information about the PETGEM project, including its name, purpose,
+ * GitHub repository, website, and the names and affiliations of the
+ * developers. It also includes the current year.
+ *
+ * The header is printed using PETSc's parallel printing functions,
+ * ensuring that the output is consistent across all processes in the
+ * PETSc communicator.
+ *
+ * @return PetscErrorCode PETSC_SUCCESS on successful completion, or an error code otherwise.
  */
-
 PetscErrorCode printHeader(){
-    /*
-      Function: printHeader
-      ----------------------------
-       Prints a header with PETGEM project information and the current year.
     
-       This function prints a formatted header to the console, containing
-       information about the PETGEM project, including its name, purpose,
-       GitHub repository, website, and the names and affiliations of the
-       developers. It also includes the current year.
-    
-       The header is printed using PETSc's parallel printing functions,
-       ensuring that the output is consistent across all processes in the
-       PETSc communicator.
-    
-       Parameters:
-         None
-    
-       Returns:
-         PetscErrorCode - Error code returned by PETSc functions. Returns
-                          PETSC_SUCCESS on successful completion.
-    
-    */
-
     PetscFunctionBeginUser;
 
     PetscCall(PetscPrintf(PETSC_COMM_WORLD, "----------------------------------------------------------------------------\n"));
@@ -96,33 +80,16 @@ PetscErrorCode printHeader(){
 // =============================================================================
 
 /**
- * @brief Prints the PETGEM simulation finalization message and version.
- * @return PetscErrorCode PETSC_SUCCESS on successful printing.
- * @details Retrieves the current date and time using `PetscGetDate` and prints a
- *          "Finished: YYYY-MM-DD HH:MM:SS" message, followed by the PETGEM version number.
- *          Uses PETSC_COMM_WORLD for parallel printing.
+ * @brief Prints the finalization time of the PETGEM simulation.
+ *
+ * This function retrieves the current local time and prints it to the
+ * console in the format: "Finished: YYYY-MM-DD HH:MM:SS".
+ * The printing is done using PETSc's parallel printing functions to ensure
+ * consistency across all processes in the PETSc communicator.
+ *
+ * @return PetscErrorCode PETSC_SUCCESS on successful completion, or an error code otherwise.
  */
-
 PetscErrorCode printFooter(){
-    /*
-    * Function: printFooter
-    * ----------------------------
-    *   Prints the finalization time of the PETGEM simulation in the format:
-    *   "Finished: YYYY-MM-DD HH:MM:SS".
-    *
-    *   This function retrieves the current local time and prints it to the
-    *   console in a formatted string. The printing is done using PETSc's
-    *   parallel printing functions to ensure consistency across all processes
-    *   in the PETSc communicator.
-    *
-    *   Parameters:
-    *     None
-    *
-    *   Returns:
-    *     PetscErrorCode - Error code returned by PETSc functions. Returns
-    *                      PETSC_SUCCESS on successful completion.
-    *
-    */
 
     PetscFunctionBeginUser;
 
@@ -146,35 +113,17 @@ PetscErrorCode printFooter(){
 
 /**
  * @brief Creates a directory if it does not already exist.
- * @param[in] path The path of the directory to create.
- * @return PetscErrorCode PETSC_SUCCESS on successful creation or if the directory already exists.
- *         Returns PETSC_ERR_FILE_OPEN if the path exists but is not a directory, or if `mkdir` fails for reasons other than EEXIST.
- * @details Checks if the specified `path` exists using `stat`. If it exists and is a directory,
- *          it returns success. If it exists but is not a directory, it returns an error.
- *          If it does not exist, it attempts to create it using `mkdir` with permissions 0755.
+ *
+ * This function checks if the specified directory exists. If the directory
+ * does not exist, it attempts to create it with the specified permissions.
+ * The function uses PETSc error handling to report any issues encountered
+ * during the creation of the directory.
+ *
+ * @param[in] path  A constant character pointer to the path of the directory to be created.
+ * @return PetscErrorCode PETSC_SUCCESS on successful completion. If the
+ *         directory creation fails, it returns an appropriate PETSc error code.
  */
-
 PetscErrorCode createDirectory(const char *path) {
-    /*
-    * Function: createDirectory
-    * ----------------------------
-    *   Creates a directory if it does not already exist.
-    *
-    *   This function checks if the specified directory exists. If the directory
-    *   does not exist, it attempts to create it with the specified permissions.
-    *   The function uses PETSc error handling to report any issues encountered
-    *   during the creation of the directory.
-    *
-    *   Parameters:
-    *     path - A constant character pointer to the path of the directory to be created.
-    *
-    *   Returns:
-    *     PetscErrorCode - Error code returned by PETSc functions. Returns
-    *                      PETSC_SUCCESS on successful completion. If the
-    *                      directory creation fails, it returns an appropriate
-    *                      PETSc error code.
-    */
-    
      
     PetscFunctionBeginUser;
     

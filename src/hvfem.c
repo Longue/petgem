@@ -343,16 +343,14 @@ PetscErrorCode computeJacobian(PetscScalar *cellCoords, PetscReal jacobian[NUM_D
 }
 
 /**
- * @brief Determines the number of Gauss points required for integrating polynomials up to a given order on a tetrahedron.
- * @param[in] nord The basis order (determines the required integration order 2*nord).
+ * @brief Determines the number of Gauss points and its Weights required for integrating polynomials
+ *        up to a given order on a tetrahedron.
+ *
+ * @param[in] nord The basis order (determines the required integration order 2*params.nord).
  * @param[out] numGaussPoints Pointer to store the required number of Gauss points.
- * @return PetscErrorCode PETSC_SUCCESS on success.
- *         Returns error code if the required Gauss order (2*nord) is out of the supported range [1, 12].
- * @details Calculates the required Gauss integration order (`gaussOrder = 2 * nord`).
- *          Uses a switch statement based on `gaussOrder` to determine the number of points needed,
- *          based on standard tetrahedral quadrature rules.
+ * @return PetscErrorCode PETSC_SUCCESS on success. Returns error code if the required Gauss order (2*nord)
+ *         is out of the supported range [1, 12].
  */
-
 PetscErrorCode computeNumGaussPoints3D(PetscInt nord, PetscInt *numGaussPoints){
     PetscFunctionBeginUser;
 
@@ -384,18 +382,14 @@ PetscErrorCode computeNumGaussPoints3D(PetscInt nord, PetscInt *numGaussPoints){
 }
 
 /**
- * @brief Renormalizes Gauss points from a [-1, 1]-based domain (as in some literature) to the [0, 1]-based reference tetrahedron.
+ * @brief Renormalizes Gauss points from a [-1, 1]-based domain to the [0, 1]-based reference tetrahedron.
+ *
  * @param[in] numPoints The number of Gauss points.
- * @param[in] gaussPoints Input array of points (typically from literature, format [?, x, y, z, w] or similar). The specific format assumed here uses indices 0,1,2 for coordinates and 3 for weight.
+ * @param[in] gaussPoints Input array of points.
  * @param[out] points Output array (numPoints x NUM_DIMENSIONS) for the renormalized coordinates [xi, eta, zeta].
  * @param[out] weights Output array (numPoints) for the renormalized weights.
  * @return PetscErrorCode PETSC_SUCCESS always.
- * @details Transforms coordinates assuming the input `gaussPoints` are based on a different reference element scaling/origin.
- *          The specific transformation used maps points likely from Dunavant's symmetric rules (or similar) to the standard reference tetrahedron (vertices at (0,0,0), (1,0,0), (0,1,0), (0,0,1)).
- *          Weights are scaled by 1/8 (likely because the reference volume changes from 2 or similar to 1/6, and weights often include Jacobian factors).
- * @warning The exact input format `gaussPoints` convention needs to be consistent with the source of the quadrature rule data.
  */
-
 PetscErrorCode renormalization3DGaussPoints(PetscInt numPoints, const PetscReal (*gaussPoints)[4], PetscReal** points, PetscReal* weights){
     PetscFunctionBeginUser;
 
@@ -411,15 +405,12 @@ PetscErrorCode renormalization3DGaussPoints(PetscInt numPoints, const PetscReal 
 
 /**
  * @brief Provides coordinates and weights for Gauss quadrature on the reference tetrahedron for various orders.
- * @param[in] numPoints The desired number of Gauss points (must correspond to a supported order).
- * @param[out] points Output array (numPoints x NUM_DIMENSIONS) for the coordinates [xi, eta, zeta].
- * @param[out] weights Output array (numPoints) for the weights.
+ *
+ * @param numPoints [in] The desired number of Gauss points.
+ * @param points [out] Output array (numPoints x NUM_DIMENSIONS) for the coordinates [xi, eta, zeta].
+ * @param weights [out] Output array (numPoints) for the weights.
  * @return PetscErrorCode PETSC_SUCCESS always.
- * @details Contains hardcoded coordinates and weights for tetrahedral Gauss quadrature rules of different orders (corresponding to numPoints = 1, 4, 5, 11, 14, 24, 31, 43, 53, 126, 210).
- *          It calls `renormalization3DGaussPoints` to transform the hardcoded values (likely from a [-1,1]-based convention) to the standard [0,1] reference tetrahedron.
- * @warning Relies on `renormalization3DGaussPoints` and the correctness of the hardcoded data. Assumes `numPoints` matches one of the implemented rules.
  */
-
 PetscErrorCode computeGaussPoints3D(PetscInt numPoints, PetscReal **points, PetscReal *weights){
     PetscFunctionBeginUser;
 
@@ -1917,16 +1908,16 @@ PetscErrorCode AncETri(PetscReal S[NUM_DIMENSIONS], PetscReal DS[NUM_DIMENSIONS]
 
 /**
  * @brief Computes the orientation flags for the 4 faces and 6 edges of a tetrahedron cell.
+ *
+ * Uses DMPlexGetTransitiveClosure to get the cone of the cell (faces, edges, vertices) and their orientations.
+ * Extracts the orientation flags provided by PETSc for faces and edges.
+ * Translates the PETSc face orientation convention to the convention used in PETGEM.
+ *
  * @param[in] dm The DMPlex object.
  * @param[in] cell The index of the cell.
  * @param[out] cellOrientation An array of size 10 to store the orientation flags [F0, F1, F2, F3, E0, E1, E2, E3, E4, E5].
- * @return PetscErrorCode PETSC_SUCCESS on success.
- * @details Uses `DMPlexGetTransitiveClosure` to get the cone of the cell (faces, edges, vertices) and their orientations.
- *          Extracts the orientation flags provided by PETSc for faces and edges.
- *          Translates the PETSc face orientation convention (0, 1, 2, -1, -2, -3) to the convention used in the basis function paper (0-5).
- *          Translates the PETSc edge orientation convention (<0 means reversed) to the convention used in the basis function paper (0=original, 1=reversed).
+ * @return PetscErrorCode PETSC_SUCCESS on success, or an error code otherwise.
  */
-
 PetscErrorCode computeCellOrientation(DM dm, PetscInt cell, PetscInt cellOrientation[10]){
     
     PetscFunctionBeginUser;
@@ -2454,6 +2445,7 @@ PetscErrorCode shape3DETet(PetscReal X[NUM_DIMENSIONS], PetscInt nord, PetscInt 
 
 /**
  * @brief Computes the elemental mass (Me) and stiffness (Ke) matrices for H(curl) elements.
+ *
  * @param[in] nord Polynomial order.
  * @param[in] cellOrientation Array of 10 orientation flags (4 faces, 6 edges).
  * @param[in] jacobian The 3x3 Jacobian matrix of the element mapping.
@@ -2464,18 +2456,8 @@ PetscErrorCode shape3DETet(PetscReal X[NUM_DIMENSIONS], PetscInt nord, PetscInt 
  * @param[in] cellResistivity Array containing the resistivity tensor components [rho_xx, rho_yy, rho_zz] (assumed diagonal).
  * @param[out] Me Output 2D array (numDof x numDof) for the elemental mass matrix.
  * @param[out] Ke Output 2D array (numDof x numDof) for the elemental stiffness matrix.
- * @return PetscErrorCode PETSC_SUCCESS on success.
- * @details Integrates the elemental matrices using Gauss quadrature.
- *          For each Gauss point:
- *          1. Evaluates all basis functions (N_i) and their curls (Curl N_i) in the reference element using `shape3DETet`.
- *          2. Transforms basis functions to the real element: N_i^{real} = J^{-T} N_i^{ref}.
- *          3. Transforms curls to the real element: Curl N_i^{real} = (1/detJ) * J * Curl N_i^{ref}.
- *          4. Computes the integrand for the mass matrix: (N_j^{real} . (epsilon_r * N_k^{real})) * detJ. epsilon_r is conductivity (1/resistivity). NOTE: Code uses resistivity here, maybe assumes epsilon_r = Id? Check physics. Assumes epsilon_r = diag(cellResistivity).
- *          5. Computes the integrand for the stiffness matrix: (Curl N_j^{real} . (mu_r^{-1} * Curl N_k^{real})) * detJ. Assumes mu_r = Identity. NOTE: Code seems to use mu_r = Id, need to verify physics / inverse.
- *          6. Adds the contribution weighted by the Gauss weight to Me[j][k] and Ke[j][k].
- * @warning The mass matrix calculation seems to use resistivity `e_r` directly, which might represent conductivity sigma or 1/mu depending on the formulation (Helmholtz vs Eddy current). Check the physics implementation. Stiffness matrix assumes mu_r = Identity.
+ * @return PetscErrorCode PETSC_SUCCESS on success, or an error code otherwise.
  */
-
 PetscErrorCode computeElementalMatrix(PetscInt nord, PetscInt cellOrientation[10], PetscReal jacobian[NUM_DIMENSIONS][NUM_DIMENSIONS], PetscReal invJacobian[NUM_DIMENSIONS][NUM_DIMENSIONS], PetscInt numGaussPoints, PetscReal **gaussPoints, PetscReal *weigths, PetscReal *cellResistivity, PetscReal **Me, PetscReal **Ke){
     PetscFunctionBeginUser;
 
@@ -2637,7 +2619,9 @@ PetscErrorCode computeElementalMatrix(PetscInt nord, PetscInt cellOrientation[10
 }
 
 /**
- * @brief Computes the H(curl) basis functions and their curls at a specific point in the reference element, transformed to the physical element.
+ * @brief Computes the H(curl) basis functions and their curls at a specific point in the reference element,
+ *        transformed to the physical element.
+ *
  * @param[in] nord Polynomial order.
  * @param[in] orientation Array of 10 orientation flags (4 faces, 6 edges).
  * @param[in] jacobian The 3x3 Jacobian matrix of the element mapping.
@@ -2645,13 +2629,8 @@ PetscErrorCode computeElementalMatrix(PetscInt nord, PetscInt cellOrientation[10
  * @param[in] point The coordinates [xi, eta, zeta] in the reference element where functions are evaluated.
  * @param[out] basisFunctions Output array (NUM_DIMENSIONS x numDof) storing the vector value of each basis function in the physical element.
  * @param[out] curlBasisFunctions Output array (NUM_DIMENSIONS x numDof) storing the curl of each basis function in the physical element.
- * @return PetscErrorCode PETSC_SUCCESS on success.
- * @details Evaluates the basis functions (ShapE) and their curls (CurlE) in the reference element at the given `point` using `shape3DETet`.
- *          Transforms the basis function vectors to the physical element: N_i^{phys} = J^{-T} N_i^{ref}.
- *          Transforms the curl vectors to the physical element: Curl N_i^{phys} = (1/detJ) * J * Curl N_i^{ref}.
- *          Stores the results in `basisFunctions` and `curlBasisFunctions`.
+ * @return PetscErrorCode PETSC_SUCCESS on success, or an error code otherwise.
  */
-
 PetscErrorCode computeBasisFunctions(PetscInt nord, PetscInt orientation[10], PetscReal jacobian[NUM_DIMENSIONS][NUM_DIMENSIONS], PetscReal invJacobian[NUM_DIMENSIONS][NUM_DIMENSIONS], PetscReal *point, PetscReal **basisFunctions, PetscReal **curlBasisFunctions){
     PetscFunctionBeginUser;
 
@@ -2735,17 +2714,12 @@ PetscErrorCode computeBasisFunctions(PetscInt nord, PetscInt orientation[10], Pe
 }
 
 /**
- * @brief Computes the elemental discrete gradient matrix for order 1 elements.
+ * @brief Computes the elemental discrete gradient matrix for linear order 1 elements.
+ *
  * @param[in] cellOrientation Array of 10 orientation flags, only edge orientations (indices 4-9) are used.
  * @param[out] gradientMatrix Output array (numEdges x numVertices = 6x4) storing the gradient matrix.
  * @return PetscErrorCode PETSC_SUCCESS always.
- * @details Constructs the 6x4 gradient matrix for a tetrahedron. Each row corresponds to an edge DOF,
- *          and each column to a vertex DOF (H1 basis function). The entry (i, j) is +1 if vertex j
- *          is the end point of oriented edge i, -1 if it's the start point, and 0 otherwise.
- *          The orientation is taken from `cellOrientation` indices 4 through 9.
- * @note This implementation is specific to order 1 (nord=1) elements where DOFs correspond directly to edges and vertices.
  */
-
 PetscErrorCode computeElementalGradientMatrix(PetscInt cellOrientation[10], PetscReal **gradientMatrix){
     PetscFunctionBeginUser;
 
@@ -2901,19 +2875,16 @@ PetscErrorCode BlendTetV(PetscReal Lam[4], PetscReal DLam[NUM_DIMENSIONS][4], Pe
 
 /**
  * @brief Computes integrated shifted scaled Legendre polynomials L_i and related terms P, R.
- * @param[in] X Coordinate, typically s1.
- * @param[in] T Scaling parameter, typically s0+s1.
- * @param[in] nord Maximum polynomial order required.
- * @param[in] Idec Boolean flag indicating if T=1 (simplified case).
- * @param[out] homL Output array storing the integrated polynomial values L_i.
- * @param[out] homP Output array storing the Legendre polynomials P_i (derivative w.r.t. X).
- * @param[out] homR Output array storing terms related to the derivative w.r.t. T.
+ *
+ * @param X [in] Coordinate, typically s1.
+ * @param T [in] Scaling parameter, typically s0+s1.
+ * @param nord [in] Maximum polynomial order required.
+ * @param Idec [in] Boolean flag indicating if T=1 (simplified case).
+ * @param homL [out] Output array storing the integrated polynomial values L_i.
+ * @param homP [out] Output array storing the Legendre polynomials P_i (derivative w.r.t. X).
+ * @param homR [out] Output array storing terms related to the derivative w.r.t. T.
  * @return PetscErrorCode PETSC_SUCCESS always.
- * @details First calls `PolyLegendre` to get the base polynomials P. Then uses recurrence relations
- *          involving P to compute the integrated polynomials L and the T-derivative related term R.
- *          Handles the simplified case (Idec=TRUE) where T=1.
  */
-
 PetscErrorCode PolyILegendre(PetscReal X, PetscReal T, PetscInt nord, PetscBool Idec, PetscReal homL[], PetscReal homP[], PetscReal homR[]){
     PetscFunctionBeginUser;
 
@@ -2957,6 +2928,7 @@ PetscErrorCode PolyILegendre(PetscReal X, PetscReal T, PetscInt nord, PetscBool 
 
 /**
  * @brief Computes homogenized integrated Legendre polynomials and their gradients.
+ *
  * @param[in] S Affine-like coordinates [s0, s1].
  * @param[in] DS Gradients of S [Grad(s0), Grad(s1)].
  * @param[in] nord Maximum polynomial order required.
@@ -2964,11 +2936,7 @@ PetscErrorCode PolyILegendre(PetscReal X, PetscReal T, PetscInt nord, PetscBool 
  * @param[out] PhiE Output array storing the homogenized integrated polynomial values.
  * @param[out] DPhiE Output 2D array storing the gradients of PhiE. DPhiE[dim][order_idx].
  * @return PetscErrorCode PETSC_SUCCESS always.
- * @details Calls `PolyILegendre` with appropriate arguments (X=s1, T=s0+s1).
- *          Computes the gradient DPhiE using the chain rule: DPhiE = P * Grad(s1) + R * Grad(s0+s1).
- *          Handles the simplified case where Idec=TRUE (T=1, so R term is not needed).
  */
-
 PetscErrorCode HomILegendre(PetscReal S[2], PetscReal DS[NUM_DIMENSIONS][2], PetscInt nord, PetscBool Idec, PetscReal *PhiE, PetscReal **DPhiE){
     PetscFunctionBeginUser;
 
@@ -3040,6 +3008,7 @@ PetscErrorCode AncPhiE(PetscReal S[2], PetscReal DS[NUM_DIMENSIONS][2], PetscInt
 
 /**
  * @brief Computes H1 ancillary basis functions associated with a triangle face.
+ *
  * @param[in] S Oriented face coordinates [s0, s1, s2].
  * @param[in] DS Oriented face gradients [Grad(s0), Grad(s1), Grad(s2)].
  * @param[in] nordFace Polynomial order for the element.
@@ -3047,11 +3016,7 @@ PetscErrorCode AncPhiE(PetscReal S[2], PetscReal DS[NUM_DIMENSIONS][2], PetscInt
  * @param[out] PhiTri Output 2D array (nord-2 x nord-2) storing the scalar value of each face ancillary function.
  * @param[out] DPhiTri Output 3D array (NUM_DIMENSIONS x nord-2 x nord-2) storing the gradient of each face ancillary function.
  * @return PetscErrorCode PETSC_SUCCESS always.
- * @details Constructs face functions by combining edge ancillary functions (`AncPhiE`) associated with the edge (s0, s1)
- *          and homogenized integrated Jacobi polynomials (`HomIJacobi`) depending on s2 and s0+s1.
- *          Calculates the gradient using the product rule: Grad(PhiE * L) = Grad(PhiE)*L + PhiE*Grad(L).
  */
-
 PetscErrorCode AncPhiTri(PetscReal S[NUM_DIMENSIONS], PetscReal DS[NUM_DIMENSIONS][NUM_DIMENSIONS], PetscInt nordFace, PetscBool IdecF, PetscReal **PhiTri, PetscReal ***DPhiTri){
     PetscFunctionBeginUser;
 
@@ -3583,7 +3548,6 @@ PetscErrorCode shape3DHTet(PetscReal X[NUM_DIMENSIONS], PetscInt nord, PetscInt 
  *          based on the implementation shown. It might be intended for testing or a different calculation.
  * @warning This function does not compute the discrete gradient matrix as its name suggests, especially for nord > 1.
  */
-
 PetscErrorCode computeElementalGradientMatrix2(PetscInt nord, PetscInt cellOrientation[10], PetscInt numGaussPoints, PetscReal **gaussPoints, PetscReal *weigths){
     PetscFunctionBeginUser;
 

@@ -4,6 +4,8 @@ build/
 # Documentation build output
 docs/build/
 docs/doxygen/
+docs/source/api
+docs/source/readme
 
 # Object files, executables, libraries
 *.o

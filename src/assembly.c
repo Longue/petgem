@@ -64,22 +64,24 @@ PetscErrorCode check_kernel(PetscReal *M, PetscReal *G, PetscInt m, PetscInt n, 
 
 /**
  * @brief Assembles the linear system matrices (A, B, G) for the HVFEM formulation.
+ *
+ * This function orchestrates the assembly of the finite element system.
+ * It computes elemental stiffness (K), mass (M), and discrete gradient (G) matrices
+ * and assembles them into global PETSc Mat objects. It also computes the
+ * right-hand side vector(s) based on the source definition (CSEM).
+ * The final system matrix @p A is K - (i*omega*mu)*M.
+ *
  * @param[in] dm The DMPlex object representing the mesh topology and H(curl) discretization.
- * @param[in] resistivity The Vec containing resistivity values, associated with a DM providing cell-wise constants.
+ * @param[in] resistivity The Vec containing resistivity values, associated with a DM
+ *                           providing cell-wise constants.
  * @param[in] grid A Grid struct containing mesh statistics and DOF information.
- * @param[in] sources A setSource struct containing source parameters (frequency, positions, etc.).
- * @param[in] params A Params struct containing simulation parameters (basis order, mode, etc.).
+ * @param[in] sources A source struct containing source parameters (frequency, positions, etc.).
+ * @param[in] params A Params struct containing simulation parameters (basis order, etc.).
  * @param[out] A Pointer to the assembled system matrix (K - i*omega*mu*M).
  * @param[out] B Pointer to the assembled right-hand side matrix (one column per source).
  * @param[out] G Pointer to the assembled discrete gradient matrix (maps H1 DOFs to H(curl) DOFs).
- * @return PetscErrorCode PETSC_SUCCESS on success.
- * @details This function orchestrates the assembly of the finite element system.
- *          It computes elemental stiffness (K), mass (M), and discrete gradient (G) matrices
- *          and assembles them into global PETSc Mat objects. It also computes the
- *          right-hand side vector(s) based on the source definition (CSEM or MT).
- *          The final system matrix A is K - (i*omega*mu)*M.
+ * @return PetscErrorCode PETSC_SUCCESS on success, or an error code otherwise.
  */
-
 PetscErrorCode assembleSystem(DM dm, Vec resistivity, Grid grid, setSource sources, Params params, Mat *A, Mat *B, Mat *G) 
 {
    PetscFunctionBeginUser;

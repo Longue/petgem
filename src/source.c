@@ -26,19 +26,14 @@
 
 /**
  * @brief Reads source parameters from a file based on the simulation mode.
+ *
+ * Opens the file specified in @p params.sourceFilename. Reads the number of sources
+ * and the source frequency. Allocates memory for @p sources->sourceArray.
+ *
  * @param[out] sources Pointer to the setSource struct to be populated.
  * @param[in] params A Params struct containing simulation parameters, including mode and source filename.
- * @return PetscErrorCode PETSC_SUCCESS on successful reading and parsing.
- *         Returns error codes on file open/read errors or format inconsistencies.
- * @details Opens the file specified in `params.sourceFilename`.
- *          Reads the number of sources and the source frequency.
- *          Allocates memory for `sources->sourceArray`.
- *          Based on `params.mode`:
- *          - If "CSEM", reads position (x,y,z), current, length, dip, and azimuth for each source.
- *          - If "MT", reads no further per-source data but initializes fields to 0.0.
- *          Prints the parsed source data.
+ * @return PetscErrorCode PETSC_SUCCESS on successful reading and parsing. Returns error codes on file open/read errors or format inconsistencies.
  */
-
 PetscErrorCode setupSource(setSource* sources, Params params) {
     PetscFunctionBeginUser;
 
