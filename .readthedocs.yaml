@@ -13,13 +13,13 @@ build:
     pre_build:
       - echo "Pre build"
       - echo "Cleaning..."
-      - make clean_doc
+      - rm -rf $READTHEDOCS_OUTPUT/html docs/doxygen/* docs/source/api/* docs/source/readme/*
       - echo "Doxygen..."
-      - make doxygen
+      - doxygen Doxyfile
       - echo "Api generation..."
-      - make api_generator
+      - python3 scripts/auto_doc/api_rst_generator.py
       - echo "Readme sync..."
-      - make readme_sync
+      - python3 scripts/auto_doc/sync_rtd_docs.py
 
 sphinx:
   configuration: docs/source/conf.py
