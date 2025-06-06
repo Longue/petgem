@@ -13,7 +13,7 @@ build:
     pre_build:
       - echo "Pre build"
       - echo "Cleaning..."
-      - make clean_all
+      - make clean_doc
       - echo "Doxygen..."
       - make doxygen
       - echo "Api generation..."
