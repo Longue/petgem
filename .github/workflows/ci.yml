@@ -80,39 +80,15 @@ jobs:
             petgem-ci-env:latest \
             make coverage
 
-      - name: DEBUG - Inspect coverage.info
-        run: |
-          echo "--- Contents of ./build/coverage.info (first 20 lines) ---"
-          if [ -f ./build/coverage.info ]; then
-            head -n 20 ./build/coverage.info
-            echo "--- Last 5 lines of ./build/coverage.info ---"
-            tail -n 5 ./build/coverage.info
-            echo "--- Word count of ./build/coverage.info ---"
-            wc ./build/coverage.info
-          else
-            echo "./build/coverage.info NOT FOUND or unreadable"
-          fi
-
       # Step 8: Upload coverage report to Coveralls
-      - name: Adjust coverage paths for Coveralls
-        run: |
-          echo "Adjusting paths in coverage.info..."
-          if [ -f ./build/coverage.info ]; then
-            # Reemplaza 'SF:/app/' con 'SF:' para todas las rutas de archivos fuente
-            sed -i 's|^SF:/app/|SF:|g' ./build/coverage.info
-            echo "Paths adjusted. Sample of new SF lines:"
-            grep "^SF:" ./build/coverage.info | head -n 5
-          else
-            echo "ERROR: ./build/coverage.info not found for path adjustment!"
-            exit 1
-          fi
-
       - name: Upload coverage to Coveralls
-        uses: coverallsapp/github-action@v2
+        uses: coverallsapp/github-action@v2 # O la última versión estable
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           format: lcov
           path-to-lcov: ./build/coverage.info
+          base-path: /app 
+          # fail-on-error: true
           # flag-name: unit-tests # Nombre para este job de cobertura si usas parallel
           # fail-under: 80 # Falla si la cobertura total es menor al 80%
           # fail-on-error: true # Falla si hay un error al subir a Coveralls
