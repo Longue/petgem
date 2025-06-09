@@ -80,6 +80,19 @@ jobs:
             petgem-ci-env:latest \
             make coverage
 
+      - name: DEBUG - Inspect coverage.info
+        run: |
+          echo "--- Contents of ./build/coverage.info (first 20 lines) ---"
+          if [ -f ./build/coverage.info ]; then
+            head -n 20 ./build/coverage.info
+            echo "--- Last 5 lines of ./build/coverage.info ---"
+            tail -n 5 ./build/coverage.info
+            echo "--- Word count of ./build/coverage.info ---"
+            wc ./build/coverage.info
+          else
+            echo "./build/coverage.info NOT FOUND or unreadable"
+          fi
+
       # Step 8: Upload coverage report to Coveralls
       - name: Upload coverage to Coveralls
         uses: coverallsapp/github-action@v2
