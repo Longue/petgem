@@ -8,7 +8,6 @@ build:
   apt_packages:
     - doxygen
     - graphviz
-    - make
   jobs:
     pre_build:
       - echo "Pre build"

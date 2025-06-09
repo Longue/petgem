@@ -992,15 +992,12 @@ PetscErrorCode computeGaussPoints3D(PetscInt numPoints, PetscReal **points, Pets
 
 /**
  * @brief Computes the barycentric (affine) coordinates and their gradients on the reference tetrahedron.
+ *
  * @param[in] X The point coordinates [xi, eta, zeta] in the reference tetrahedron.
  * @param[out] Lam The four barycentric coordinates [L0, L1, L2, L3].
  * @param[out] DLam The gradients of the barycentric coordinates, DLam[dim][coord_index].
  * @return PetscErrorCode PETSC_SUCCESS always.
- * @details Calculates L0=1-xi-eta-zeta, L1=xi, L2=eta, L3=zeta.
- *          Calculates the constant gradients: Grad(L0)=[-1,-1,-1], Grad(L1)=[1,0,0], Grad(L2)=[0,1,0], Grad(L3)=[0,0,1].
- *          Based on Fuentes et al. (2015).
  */
-
 PetscErrorCode AffineTetrahedron(PetscReal X[NUM_DIMENSIONS], PetscReal Lam[4], PetscReal DLam[NUM_DIMENSIONS][4]){
     /*Compute affine coordinates and their gradients.
 
@@ -1034,16 +1031,14 @@ PetscErrorCode AffineTetrahedron(PetscReal X[NUM_DIMENSIONS], PetscReal Lam[4], 
 
 /**
  * @brief Projects tetrahedral barycentric coordinates and gradients onto the 6 edges.
+ *
  * @param[in] Lam The four barycentric coordinates [L0, L1, L2, L3].
  * @param[in] DLam The gradients of the barycentric coordinates.
  * @param[out] LampE Projections onto edges. LampE[edge_index][0/1] gives the two relevant barycentric coordinates for that edge.
  * @param[out] DLampE Projections of gradients onto edges. DLampE[edge_index][dim][0/1] gives the two relevant gradients.
- * @param[out] IdecE Boolean flag, always set to PETSC_FALSE as barycentric coordinates on an edge don't sum to 1 unless the point is on the edge.
+ * @param[out] IdecE Boolean flag, always set to PETSC_FALSE as barycentric coordinates on an edge don’t sum to 1 unless the point is on the edge.
  * @return PetscErrorCode PETSC_SUCCESS always.
- * @details Maps the 4 barycentric coordinates/gradients to the pair associated with each of the 6 edges according to a fixed local numbering convention (e.g., edge 0 uses L1, L0; edge 1 uses L0, L2, etc.).
- *          Based on Fuentes et al. (2015).
  */
-
 PetscErrorCode ProjectTetE(PetscReal Lam[4], PetscReal DLam[NUM_DIMENSIONS][4], PetscReal LampE[NUM_EDGES_PER_ELEMENT][2], PetscReal DLampE[NUM_EDGES_PER_ELEMENT][NUM_DIMENSIONS][2], PetscBool* IdecE){
     /*Projection of tetrahedral edges in concordance with numbering of topological entities (vertices, edges, faces).
 
@@ -1168,15 +1163,16 @@ PetscErrorCode OrientE(PetscReal S[2], PetscReal DS[NUM_DIMENSIONS][2], PetscInt
 
 /**
  * @brief Computes shifted scaled Legendre polynomials P_i(y) where y = 2*X - T.
+ *
+ * Computes Legendre polynomials using the standard three-term recurrence relation,
+ * adapted for the scaled variable y = 2*X - T.
+ *
  * @param[in] X Coordinate, typically s1 from an oriented edge projection (range depends on T).
  * @param[in] T Scaling parameter, typically s0+s1 from an oriented edge projection.
  * @param[in] nord Maximum polynomial order required (computes P_0 to P_nord).
  * @param[out] P Array to store the computed polynomial values P[0] to P[nord].
  * @return PetscErrorCode PETSC_SUCCESS always.
- * @details Computes Legendre polynomials using the standard three-term recurrence relation,
- *          adapted for the scaled variable y = 2*X - T. P[0]=1, P[1]=y, ...
  */
-
 PetscErrorCode PolyLegendre(PetscReal X, PetscReal T, PetscInt nord, PetscReal P[]){
     /*Compute values of shifted scaled Legendre polynomials.
 
@@ -1212,18 +1208,17 @@ PetscErrorCode PolyLegendre(PetscReal X, PetscReal T, PetscInt nord, PetscReal P
 }
 
 /**
- * @brief Computes shifted scaled Jacobi polynomials P_j^{alpha, 0}(y) where y = 2*X - T.
+ * @brief Computes Jacobi polynomials P_j^{alpha, 0} using a recurrence relation adapted for the shifted variable y = 2*X - T.
+ *
  * @param[in] X Coordinate, typically s1 from an oriented face projection (range depends on T).
  * @param[in] T Scaling parameter, typically s0+s1 from an oriented face projection.
  * @param[in] nord Maximum polynomial order j required (0 to nord).
  * @param[in] Minalpha The starting value for alpha (alpha increases by 2 for different polynomial families).
  * @param[out] P Output 2D array P[family_index][order_j] storing the polynomial values.
  * @return PetscErrorCode PETSC_SUCCESS always.
- * @details Computes Jacobi polynomials P_j^{alpha, 0} using a recurrence relation adapted for the shifted variable y = 2*X - T.
- *          The output `P` stores polynomials for different alpha values (implicitly indexed by the first dimension, corresponding to Minalpha, Minalpha+2, ...).
- *          Used for constructing face and volume basis functions.
+ * @details The output @p P stores polynomials for different alpha values (implicitly indexed by the first dimension,
+ *          corresponding to Minalpha, Minalpha+2, …). Used for constructing face and volume basis functions.
  */
-
 PetscErrorCode PolyJacobi(PetscReal X, PetscReal T, PetscInt nord, PetscInt Minalpha, PetscReal **P){
     /*Compute values of shifted scaled Jacobi polynomials P**alpha-i.
 
@@ -1330,7 +1325,6 @@ PetscErrorCode HomLegendre(PetscReal S[2], PetscInt nord, PetscReal HomP[]){
  * @details Constructs the lowest-order Whitney edge function W = s0*Grad(s1) - s1*Grad(s0) and its curl Curl(W) = 2*Grad(s0) x Grad(s1).
  *          Computes higher-order functions by multiplying W by homogenized Legendre polynomials (from `HomLegendre`).
  *          The curl of the i-th function is (i+1)*P_{i-1}*Curl(W).
- *          Based on Fuentes et al. (2015).
  */
 
 PetscErrorCode AncEE(PetscReal S[2], PetscReal DS[NUM_DIMENSIONS][2], PetscInt nord, PetscBool Idec, PetscReal **EE, PetscReal **CurlEE){
@@ -1424,7 +1418,6 @@ PetscErrorCode AncEE(PetscReal S[2], PetscReal DS[NUM_DIMENSIONS][2], PetscInt n
  * @param[out] IdecF Boolean flag, always set to PETSC_FALSE as barycentric coordinates on a face don't sum to 1 unless the point is on the face.
  * @return PetscErrorCode PETSC_SUCCESS always.
  * @details Maps the 4 barycentric coordinates/gradients to the triplet associated with each of the 4 faces according to a fixed local numbering convention (e.g., face 0 uses L1, L0, L2; face 1 uses L1, L3, L0, etc.).
- *          Based on Fuentes et al. (2015).
  */
 
 PetscErrorCode ProjectTetF(PetscReal Lam[4], PetscReal DLam[NUM_DIMENSIONS][4], PetscReal LampF[NUM_FACES_PER_ELEMENT][NUM_DIMENSIONS], PetscReal DLampF[NUM_FACES_PER_ELEMENT][NUM_DIMENSIONS][NUM_DIMENSIONS], PetscBool* IdecF){
@@ -1776,7 +1769,6 @@ PetscErrorCode HomIJacobi(PetscReal S[2], PetscReal DS[NUM_DIMENSIONS][2], Petsc
  *          and homogenized integrated Jacobi polynomials (`HomIJacobi`) depending on s2 and s0+s1.
  *          Calculates the curl using the product rule: Curl(EE * L) = Curl(EE)*L + Grad(L) x EE.
  *          The indices [j][k-1] correspond to polynomial orders related to the edge and the transverse direction.
- *          Based on Fuentes et al. (2015).
  */
 
 PetscErrorCode AncETri(PetscReal S[NUM_DIMENSIONS], PetscReal DS[NUM_DIMENSIONS][NUM_DIMENSIONS], PetscInt nord, PetscBool Idec, PetscReal ***ETri, PetscReal ***CurlETri){
@@ -1990,7 +1982,6 @@ PetscErrorCode computeCellOrientation(DM dm, PetscInt cell, PetscInt cellOrienta
  *          3. Computes face functions: Projects onto faces (`ProjectTetF`), orients (`OrientTri`), handles 2 families per face, computes ancillary face functions (`AncETri`).
  *          4. Computes volume functions: Handles 3 families per cell, combines face ancillary functions (`AncETri` on sub-entities) with integrated Jacobi polynomials (`HomIJacobi` in the last barycentric coordinate).
  *          5. Reorders the computed functions from the hierarchical construction order to the PETSc DOF ordering convention.
- *          Based on Fuentes et al. (2015).
  */
 
 PetscErrorCode shape3DETet(PetscReal X[NUM_DIMENSIONS], PetscInt nord, PetscInt cellOrientation[10], PetscReal **ShapE, PetscReal **CurlE){

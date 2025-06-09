@@ -80,13 +80,22 @@ jobs:
             petgem-ci-env:latest \
             make coverage
 
-      # Step 8: Upload the coverage report as a workflow artifact
-      # Files generated inside the container in the mounted volume (/app)
-      # will be available in ${{ github.workspace }} on the runner.
+      # Step 8: Upload coverage report to Coveralls
+      - name: Upload coverage to Coveralls
+        uses: coverallsapp/github-action@v2
+        with:
+
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          format: lcov 
+          path-to-lcov: ./build/coverage.info
+          # flag-name: unit-tests # Nombre para este job de cobertura si usas parallel
+          # fail-under: 80 # Falla si la cobertura total es menor al 80%
+          # fail-on-error: true # Falla si hay un error al subir a Coveralls
+
+      # Step 9: Upload the HTML coverage report as a workflow artifact
       - name: Upload HTML coverage report
         uses: actions/upload-artifact@v4
         with:
-          name: petgem-coverage-report-html # Name of the artifact you'll see on GitHub
-          path: build/coverage-html  # PATH TO YOUR HTML COVERAGE REPORT DIRECTORY
-                                      # Ensure this path is correct
-          if-no-files-found: error # Fail the step if the directory/files are not found
+          name: petgem-coverage-report-html
+          path: build/coverage-html
+          if-no-files-found: error

@@ -124,17 +124,15 @@ clean_coverage: build
 # === Documentation ===
 DOXYFILE := Doxyfile
 SPHINX_PY := python3 # Or just python if it's in your PATH and configured for Sphinx
-SPHINX_GEN_SCRIPT_PATH := scripts/auto_doc/sync_rtd_docs.py # Full path to your generator script
-SPHINX_API_SCRIPT_PATH := scripts/auto_doc/api_rst_generator.py # Full path to your generator script
+SPHINX_GEN_SCRIPT_PATH := scripts/auto_doc/sync_rtd_docs.py
+SPHINX_API_SCRIPT_PATH := scripts/auto_doc/api_rst_generator.py
 SPHINX_SOURCE_DIR := docs/source
 SPHINX_BUILD_DIR := docs/build
 SPHINX_BUILD_CMD := $(SPHINX_PY) -m sphinx # Recommended way to invoke Sphinx
 SPHINX_OUT := $(SPHINX_BUILD_DIR)/html
 
 # Target to generate all documentation
-# Removed specific source file dependencies to always run when called;
-# rely on 'make clean_docs' to force a rebuild.
-docs: doxygen api_generator readme_sync sphinx_html
+docs: clean_doc doxygen api_generator readme_sync sphinx_html
 
 # Generate Doxygen XML documentation
 doxygen:
