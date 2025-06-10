@@ -85,7 +85,7 @@ jobs:
         uses: coverallsapp/github-action@v2 # O la última versión estable
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          format: lcov
+          # format: lcov
           path-to-lcov: ./build/coverage.info
           base-path: /app 
           # fail-on-error: true
