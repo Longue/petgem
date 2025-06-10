@@ -49,11 +49,13 @@ jobs:
       # === Step 3: UNIT TESTS & CODE COVERAGE ===
       - name: Run Unit Tests and Update Report
         run: |
+          mkdir -p ./build && \
           docker run --rm \
             --workdir /app \
             -v "${{ github.workspace }}":/app \
             petgem-ci-env:latest \
-            make run_tests > ./build/unit_tests.log 2>&1 || (echo "Unit tests failed. See log below:" && cat ./build/unit_tests.log && exit 1)
+            make test > ./build/unit_tests.log 2>&1 || (echo "Unit tests failed. See log below:" && cat ./build/unit_tests.log && exit 1)
+            
           TEST_SUMMARY=$(grep -Eo '^[0-9]+ Tests, [0-9]+ Failures, [0-9]+ Ignored' ./build/unit_tests.log | sed 's/OK//')
           if [ -n "$TEST_SUMMARY" ]; then
             echo "✅ **Unit Tests:** Passed ($TEST_SUMMARY)" >> ci_summary_report.md
