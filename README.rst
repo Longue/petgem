@@ -12,6 +12,7 @@
    :target: https://petgem-c.readthedocs.io/en/latest/index.html
 
 .. image:: https://coveralls.io/repos/github/Longue/petgem/badge.svg?branch=c-development
+   :alt: Coveralls
    :target: https://coveralls.io/github/Longue/petgem?branch=c-development
 
 .. 
@@ -34,6 +35,7 @@
    image:: https://img.shields.io/pypi/v/petgem
    :target: https://pypi.org/project/petgem/
    :alt: Pypi-petgem
+
 .. image:: https://img.shields.io/github/v/release/ocastilloreyes/petgem
    :target: https://github.com/ocastilloreyes/petgem/releases
    :alt: GitHub release (latest by date)
