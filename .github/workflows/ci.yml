@@ -80,10 +80,18 @@ jobs:
             petgem-ci-env:latest \
             make coverage
 
-      #  Depuración para verificar el archivo LCOV
+      # Fix coverage paths
+      - name: Fix coverage paths
+        run: |
+          echo "Fixing paths in coverage.info..."
+          # Reemplaza 'SF:/app/' con 'SF:' para hacer las rutas relativas
+          # Usamos '#' como delimitador para no tener problemas con las barras '/'
+          sed -i 's#^SF:/app/#SF:#g' build/coverage.info
+
+      # LCOV verification
       - name: Inspect final coverage file
         run: |
-          echo "--- Checking SF paths in coverage.info ---"
+          echo "--- Checking SF paths in coverage.info (after fixing) ---"
           grep "^SF:" build/coverage.info | head -n 10
 
       # Step 8: Upload coverage report to Coveralls
