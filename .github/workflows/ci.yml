@@ -118,3 +118,34 @@ jobs:
           name: petgem-coverage-report-html
           path: build/coverage-html
           if-no-files-found: error
+
+      # Step 10: Generate Documentation Badge
+      - name: Generate Doxygen XML Documentation
+        run: |
+          # Este paso crea el directorio ./build/doxygen/xml/ en el runner
+          docker run --rm \
+            --workdir /app \
+            -v "${{ github.workspace }}":/app \
+            petgem-ci-env:latest \
+            make docs
+
+      - name: Calculate Doc Coverage and Generate Badge
+        run: |
+          python3 ./scripts/calculate_doc_coverage.py ./docs/doxygen/xml/ \
+            --badge \
+            --badge_path ./build/doc_coverage_badge.svg
+      #     --fail_under 75 
+
+      - name: Prepare Badge for GitHub Pages Deployment
+        run: |
+          mkdir -p ./public
+          mv ./build/doc_coverage_badge.svg ./public/
+
+      - name: Deploy Badge to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: ./public
+          user_name: 'github-actions[bot]'
+          user_email: 'github-actions[bot]@users.noreply.github.com'
