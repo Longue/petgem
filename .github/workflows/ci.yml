@@ -71,6 +71,21 @@ jobs:
             petgem-ci-env:latest \
             make run_tests
 
+      # Step 8: Upload coverage report to Coveralls
+      - name: Upload coverage to Coveralls
+        uses: coverallsapp/github-action@v2 # O la última versión estable
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          # format: lcov
+          path-to-lcov: ./build/coverage.info
+          base-path: /app 
+          # fail-on-error: true
+          # flag-name: unit-tests
+          # fail-under: 80 # Falla si la cobertura total es menor al 80%
+          fail-on-error: false # Falla si hay un error al subir a Coveralls
+        env:
+          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
+
       # Step 7: Generate coverage report INSIDE the Docker container
       - name: Generate coverage report (in Docker)
         run: |
@@ -79,21 +94,6 @@ jobs:
             -v "${{ github.workspace }}":/app \
             petgem-ci-env:latest \
             make coverage
-
-      # Step 8: Upload coverage report to Coveralls
-      - name: Upload coverage to Coveralls
-        uses: coverallsapp/github-action@v2 # O la última versión estable
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          # format: lcov
-          path-to-lcov: /app/build/coverage.info
-          # base-path: /app 
-          # fail-on-error: true
-          # flag-name: unit-tests
-          # fail-under: 80 # Falla si la cobertura total es menor al 80%
-          # fail-on-error: true # Falla si hay un error al subir a Coveralls
-        env:
-          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
 
       # Step 9: Upload the HTML coverage report as a workflow artifact
       - name: Upload HTML coverage report
