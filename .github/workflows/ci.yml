@@ -80,8 +80,11 @@ jobs:
             petgem-ci-env:latest \
             make coverage
 
-      - name: Dump coverage file
-        run: cat build/coverage.info
+      #  Depuración para verificar el archivo LCOV
+      - name: Inspect final coverage file
+        run: |
+          echo "--- Checking SF paths in coverage.info ---"
+          grep "^SF:" build/coverage.info | head -n 10
 
       # Step 8: Upload coverage report to Coveralls
       - name: Upload coverage to Coveralls
@@ -93,7 +96,7 @@ jobs:
           # fail-on-error: true
           # flag-name: unit-tests
           # fail-under: 80 # Falla si la cobertura total es menor al 80%
-          fail-on-error: false # Falla si hay un error al subir a Coveralls
+          fail-on-error: true # Falla si hay un error al subir a Coveralls
         env:
           COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
 
