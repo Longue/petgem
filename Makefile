@@ -105,13 +105,14 @@ test: run_tests
 
 # Target to generate the COVERAGE report
 coverage: build clean_coverage run_tests
-	@echo ">>> [COVERAGE] Generating LCOV report in build/ directory..."
-	lcov --capture --directory . --output-file build/coverage.raw.info --base-directory . --rc lcov_branch_coverage=1
-	@echo ">>> [COVERAGE] Removing external libraries from coverage report..."
+	@echo ">>> [COVERAGE] Generating LCOV report..."
+	lcov --capture --directory . --output-file build/coverage.raw.info --base-directory /app --rc lcov_branch_coverage=1
+	@echo ">>> [COVERAGE] Removing external libraries from report..."
 	lcov --remove build/coverage.raw.info '/usr/*' '/opt/*' --output-file build/coverage.info --rc lcov_branch_coverage=1
 	@echo ">>> [COVERAGE] Generating HTML report..."
 	genhtml build/coverage.info --output-directory build/coverage-html --branch-coverage
 	@echo ">>> [COVERAGE] HTML report generated at build/coverage-html/index.html"
+
 
 # Clean coverage-related files AND test-specific object files
 clean_coverage: build
