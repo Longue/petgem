@@ -56,7 +56,7 @@ jobs:
             petgem-ci-env:latest \
             make test > ./build/unit_tests.log 2>&1 || (echo "Unit tests failed. See log below:" && cat ./build/unit_tests.log && exit 1)
             
-          TEST_SUMMARY=$(grep -Eo '^[0-9]+ Tests, [0-9]+ Failures, [0-9]+ Ignored' ./build/unit_tests.log | sed 's/OK//')
+          TEST_SUMMARY=$(grep -Eo '[0-9]+ Tests [0-9]+ Failures [0-9]+ Ignored' ./build/unit_tests.log | sed 's/OK//')
           if [ -n "$TEST_SUMMARY" ]; then
             echo "✅ **Unit Tests:** Passed ($TEST_SUMMARY)" >> ci_summary_report.md
           else
@@ -146,7 +146,19 @@ jobs:
               echo "" >> /app/ci_summary_report.md;
               echo "---" >> /app/ci_summary_report.md;
               echo "## Environment & Tool Versions" >> /app/ci_summary_report.md;
-              echo "- **PETSc Version:** $(grep PETSC_VERSION_GIT ${PETSC_DIR}/include/petscversion.h | cut -d " " -f 3)" >> /app/ci_summary_report.md;
+              
+              # Método robusto para obtener la versión de PETSc
+              PETSC_VER_H="${PETSC_DIR}/include/petscversion.h"
+              if [ -f "$PETSC_VER_H" ]; then
+                MAJOR=$(grep "#define PETSC_VERSION_MAJOR" "$PETSC_VER_H" | awk "{print \$3}");
+                MINOR=$(grep "#define PETSC_VERSION_MINOR" "$PETSC_VER_H" | awk "{print \$3}");
+                SUBMINOR=$(grep "#define PETSC_VERSION_SUBMINOR" "$PETSC_VER_H" | awk "{print \$3}");
+                PETSC_VERSION="${MAJOR}.${MINOR}.${SUBMINOR}";
+              else
+                PETSC_VERSION="Not Found";
+              fi;
+              echo "- **PETSc Version:** ${PETSC_VERSION}" >> /app/ci_summary_report.md;
+              
               echo "- **GCC Version:** $(gcc --version | head -n 1)" >> /app/ci_summary_report.md;
               echo "- **Python Version:** $(python3 --version)" >> /app/ci_summary_report.md;
               echo "- **Doxygen Version:** $(doxygen --version)" >> /app/ci_summary_report.md;
