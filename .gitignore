@@ -6,6 +6,7 @@ docs/build/
 docs/doxygen/
 docs/source/api
 docs/source/readme
+data/wham
 
 # Object files, executables, libraries
 *.o

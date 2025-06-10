@@ -19,6 +19,7 @@ import meshio
 import petsc4py
 import numpy as np
 import h5py
+import os
 
 petsc4py.init(sys.argv)
 
@@ -27,10 +28,17 @@ from petsc4py import PETSc
 # ------------------------------------------------------------------------------
 # USER PARAMS
 # ------------------------------------------------------------------------------
-input_mesh_filename = "mesh.msh"
-output_mesh_filename = "wham_model.h5"
-input_receivers_filename = "receivers.txt"
-output_receivers_filename = "receivers.h5"
+DATA_DIR = "data"
+WHAM_DIR = os.path.join(DATA_DIR, "wham")
+
+os.makedirs(WHAM_DIR, exist_ok=True)
+
+input_mesh_filename = os.path.join(DATA_DIR, "mesh.msh")
+output_mesh_filename = os.path.join(WHAM_DIR, "wham_model.h5") 
+
+input_receivers_filename = os.path.join(DATA_DIR, "receivers.txt")
+output_receivers_filename = os.path.join(WHAM_DIR, "receivers.h5")
+
 numDimensions = 3
 sigma_x = np.array([1., 0.01, 1., 3.3333], dtype=float)
 sigma_y = np.array([1., 0.01, 1., 3.3333], dtype=float)

@@ -130,31 +130,31 @@ int main(int argc, char **argv)
     #endif
 
     // /* Solve linear system */
-    // #ifdef USE_EXTRAE
-    // Extrae_event (1000, 8);
-    // #endif
-    // PetscCall(solveSystem(dm, A, B, G, params, &X));
-    // #ifdef USE_EXTRAE
-    // Extrae_event (1000, 0);
-    // #endif
+    #ifdef USE_EXTRAE
+    Extrae_event (1000, 8);
+    #endif
+    PetscCall(solveSystem(dm, A, B, G, params, &X));
+    #ifdef USE_EXTRAE
+    Extrae_event (1000, 0);
+    #endif
 
     // /* Postprocessing solution */
-    // #ifdef USE_EXTRAE
-    // Extrae_event (1000, 9);
-    // #endif
-    // PetscCall(computeFields(dm, X, grid, sources, params));
-    // #ifdef USE_EXTRAE
-    // Extrae_event (1000, 0);
-    // #endif
+    #ifdef USE_EXTRAE
+    Extrae_event (1000, 9);
+    #endif
+    PetscCall(computeFields(dm, X, grid, sources, params));
+    #ifdef USE_EXTRAE
+    Extrae_event (1000, 0);
+    #endif
 
     // /* Print PETGEM footer */
-    // #ifdef USE_EXTRAE
-    // Extrae_event (1000, 10);
-    // #endif
-    // PetscCall(printFooter());
-    // #ifdef USE_EXTRAE
-    // Extrae_event (1000, 0);
-    // #endif
+    #ifdef USE_EXTRAE
+    Extrae_event (1000, 10);
+    #endif
+    PetscCall(printFooter());
+    #ifdef USE_EXTRAE
+    Extrae_event (1000, 0);
+    #endif
 
     /* Free memory */
     PetscCall(DMDestroy(&grid.H1dm));
