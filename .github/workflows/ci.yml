@@ -90,7 +90,6 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           # format: lcov
           path-to-lcov: ./build/coverage.info
-          base-path: /app 
           # fail-on-error: true
           # flag-name: unit-tests
           # fail-under: 80 # Falla si la cobertura total es menor al 80%
