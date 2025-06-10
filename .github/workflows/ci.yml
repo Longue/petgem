@@ -80,6 +80,9 @@ jobs:
             petgem-ci-env:latest \
             make coverage
 
+      - name: Dump coverage file
+        run: cat build/coverage.info
+
       # Step 8: Upload coverage report to Coveralls
       - name: Upload coverage to Coveralls
         uses: coverallsapp/github-action@v2 # O la última versión estable
