@@ -150,26 +150,29 @@ jobs:
               echo "- **Doxygen Version:** $(doxygen --version)" >> /app/ci_summary_report.md;
             '
 
-      - name: Finalize and Upload Success Report
+      - name: Finalize Success Report
         run: |
           echo "" >> ci_summary_report.md
           echo "---" >> ci_summary_report.md
           echo "🎉 **Result:** All steps completed successfully!" >> ci_summary_report.md
-        
+
+      - name: Upload Success Report
         uses: actions/upload-artifact@v4
         with:
           name: ci-execution-report
           path: ci_summary_report.md
 
       # === Step 7: HANDLE FAILURE ===
-      - name: Finalize and Upload Failure Report
+      - name: Finalize Failure Report
         if: failure()
         run: |
           echo "" >> ci_summary_report.md
           echo "---" >> ci_summary_report.md
           echo "❌ **Result:** The pipeline failed at a previous step." >> ci_summary_report.md
           echo "Please check the logs of the failed step for details." >> ci_summary_report.md
-        
+
+      - name: Upload Failure Report
+        if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: ci-execution-report-FAILED
