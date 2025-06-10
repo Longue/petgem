@@ -25,14 +25,10 @@
    :alt: petgem-license
    :target: https://opensource.org/licenses/BSD-3-Clause
 
-.. table::
-   :align: center
-   :width: 100%
+=========================================================================================
+|doc_badge| |coverage_badge| |release_badge| |ubuntu_badge| |license_badge|
+=========================================================================================
 
-   +------------------------------------------------------------------------------------------------------------------------------------+
-   | |doc_badge| |coverage_badge| |release_badge| |ubuntu_badge| |license_badge|                                                          |
-   +------------------------------------------------------------------------------------------------------------------------------------+
-   
 Parallel Edge-based Tool for Geophysical Electromagnetic Modelling
 ------------------------------------------------------------------
 **petgem** is a Python code for the scalable solution of electromagnetic diffusion fields on tetrahedral
