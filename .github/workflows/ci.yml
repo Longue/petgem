@@ -53,28 +53,31 @@ jobs:
       # Now that the 'petgem-ci-env:latest' image is built and loaded,
       # run make commands INSIDE containers based on that image.
 
-      # Step 5: Compile the project and tests INSIDE the Docker container
+      # Step 5: Compile the project and tests (in Docker)
       - name: Compile project and tests (in Docker)
         run: |
           docker run --rm \
+            --user "$(id -u):$(id -g)" \
             --workdir /app \
             -v "${{ github.workspace }}":/app \
             petgem-ci-env:latest \
             make compile_tests
 
-      # Step 6: Run tests INSIDE the Docker container
+      # Step 6: Run tests (in Docker)
       - name: Run tests (in Docker)
         run: |
           docker run --rm \
+            --user "$(id -u):$(id -g)" \
             --workdir /app \
             -v "${{ github.workspace }}":/app \
             petgem-ci-env:latest \
             make run_tests
 
-      # Step 7: Generate coverage report INSIDE the Docker container
+      # Step 7: Generate coverage report (in Docker)
       - name: Generate coverage report (in Docker)
         run: |
           docker run --rm \
+            --user "$(id -u):$(id -g)" \
             --workdir /app \
             -v "${{ github.workspace }}":/app \
             petgem-ci-env:latest \
