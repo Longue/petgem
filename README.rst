@@ -1,29 +1,31 @@
-.. image:: https://github.com/ocastilloreyes/petgem/blob/master/doc/source/_static/figures/petgem_logo.png
+.. image:: https://raw.githubusercontent.com/ocastilloreyes/petgem/master/doc/source/_static/figures/petgem_logo.png
    :target: https://github.com/ocastilloreyes/petgem
    :align: center
    :alt: petgem logo
 
 ----
 
-.. image:: https://Longue.github.io/petgem/doc_coverage_badge.svg
+.. |doc_badge| image:: https://Longue.github.io/petgem/doc_coverage_badge.svg
    :alt: Documentation Coverage
    :target: https://petgem-c.readthedocs.io/en/latest/index.html
 
-.. image:: https://coveralls.io/repos/github/Longue/petgem/badge.svg?branch=c-development
+.. |coverage_badge| image:: https://coveralls.io/repos/github/Longue/petgem/badge.svg?branch=c-development
    :alt: Coveralls
    :target: https://coveralls.io/github/Longue/petgem?branch=c-development
 
-.. image:: https://img.shields.io/github/v/release/ocastilloreyes/petgem
-   :target: https://github.com/ocastilloreyes/petgem/releases
+.. |release_badge| image:: https://img.shields.io/github/v/release/ocastilloreyes/petgem
    :alt: GitHub release (latest by date)
+   :target: https://github.com/ocastilloreyes/petgem/releases
 
-.. image:: https://img.shields.io/static/v1?label=Ubuntu&logo=Ubuntu&logoColor=white&message=support&color=success
-   :target: https://ubuntu.com/
+.. |ubuntu_badge| image:: https://img.shields.io/static/v1?label=Ubuntu&logo=Ubuntu&logoColor=white&message=support&color=success
    :alt: Ubuntu support
+   :target: https://ubuntu.com/
 
-.. image:: https://img.shields.io/badge/License-BSD%203--Clause-blue.svg
-   :target: https://opensource.org/licenses/BSD-3-Clause
+.. |license_badge| image:: https://img.shields.io/badge/License-BSD%203--Clause-blue.svg
    :alt: petgem-license
+   :target: https://opensource.org/licenses/BSD-3-Clause
+
+|doc_badge| |coverage_badge| |release_badge| |ubuntu_badge| |license_badge|
 
 Parallel Edge-based Tool for Geophysical Electromagnetic Modelling
 ------------------------------------------------------------------
