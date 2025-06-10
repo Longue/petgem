@@ -85,7 +85,6 @@ jobs:
         uses: coverallsapp/github-action@v2 # O la última versión estable
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          repo_token: ${{ secrets.COVERALLS_REPO_TOKEN }}
           format: lcov
           path-to-lcov: ./build/coverage.info
           base-path: /app 
@@ -93,6 +92,8 @@ jobs:
           # flag-name: unit-tests
           # fail-under: 80 # Falla si la cobertura total es menor al 80%
           # fail-on-error: true # Falla si hay un error al subir a Coveralls
+        env:
+          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
 
       # Step 9: Upload the HTML coverage report as a workflow artifact
       - name: Upload HTML coverage report
