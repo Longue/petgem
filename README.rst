@@ -5,27 +5,43 @@
 
 ----
 
-.. image:: https://readthedocs.org/projects/emg3d/badge/?version=latest
+
+
+.. image:: https://Longue.github.io/petgem/doc_coverage_badge.svg
+   :alt: Documentation Coverage
+   :target: https://petgem-c.readthedocs.io/en/latest/index.html
+
+.. image:: https://coveralls.io/repos/github/Longue/petgem/badge.svg?branch=c-development
+   :target: https://coveralls.io/github/Longue/petgem?branch=c-development
+
+.. 
+   image:: https://readthedocs.org/projects/emg3d/badge/?version=latest
    :target: http://petgem.bsc.es/
    :alt: Documentation Status
-.. image:: https://travis-ci.com/ocastilloreyes/petgem.svg?branch=master
+.. 
+   image:: https://travis-ci.com/ocastilloreyes/petgem.svg?branch=master
    :target: https://travis-ci.com/ocastilloreyes/petgem
    :alt: Travis-CI
-.. image:: https://coveralls.io/repos/github/ocastilloreyes/petgem/badge.svg
+.. 
+   image:: https://coveralls.io/repos/github/ocastilloreyes/petgem/badge.svg
    :target: https://coveralls.io/github/ocastilloreyes/petgem?branch=master
    :alt: Coveralls
-.. image:: https://app.codacy.com/project/badge/Grade/283b8199432f4daa8526783d6630377d
+.. 
+   image:: https://app.codacy.com/project/badge/Grade/283b8199432f4daa8526783d6630377d
    :target: https://www.codacy.com/app/ocastilloreyes/petgem
    :alt: Codacy-grade
-.. image:: https://img.shields.io/pypi/v/petgem
+.. 
+   image:: https://img.shields.io/pypi/v/petgem
    :target: https://pypi.org/project/petgem/
    :alt: Pypi-petgem
 .. image:: https://img.shields.io/github/v/release/ocastilloreyes/petgem
    :target: https://github.com/ocastilloreyes/petgem/releases
    :alt: GitHub release (latest by date)
+
 .. image:: https://img.shields.io/static/v1?label=Ubuntu&logo=Ubuntu&logoColor=white&message=support&color=success
    :target: https://ubuntu.com/
    :alt: Ubuntu support
+
 .. image:: https://img.shields.io/badge/License-BSD%203--Clause-blue.svg
    :target: https://opensource.org/licenses/BSD-3-Clause
    :alt: petgem-license
