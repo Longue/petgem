@@ -3,14 +3,14 @@ name: PETGEM CI with Docker Cache
 on:
   push:
     branches:
-      - c-development       # Or your primary branch (e.g., master, develop)
+      - c-development
   pull_request:
     branches:
-      - c-development       # Or your primary branch
+      - c-development
 
 jobs:
-  build_and_test_in_docker:
-    runs-on: ubuntu-latest  # GitHub Actions runner type
+  build_test_and_report:
+    runs-on: ubuntu-latest
 
     steps:
       # === Step 1: SETUP & BUILD ===
@@ -24,7 +24,6 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Build Docker image and load to local Docker
-        id: docker_build 
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -48,56 +47,41 @@ jobs:
           echo "## Pipeline Status" >> ci_summary_report.md
 
       # === Step 3: UNIT TESTS & CODE COVERAGE ===
-      - name: Run tests (in Docker)
+      - name: Run Unit Tests and Update Report
         run: |
           docker run --rm \
-            --user "$(id -u):$(id -g)" \
             --workdir /app \
             -v "${{ github.workspace }}":/app \
             petgem-ci-env:latest \
-            make run_tests > ./build/unit_tests.log 2>&1 || (cat ./build/unit_tests.log && exit 1)
-
-            TEST_SUMMARY=$(grep -E '^[0-9]+ Tests, [0-9]+ Failures, [0-9]+ Ignored' ./build/unit_tests.log | sed 's/OK//')
+            make test > ./build/unit_tests.log 2>&1 || (echo "Unit tests failed. See log below:" && cat ./build/unit_tests.log && exit 1)
+          TEST_SUMMARY=$(grep -Eo '^[0-9]+ Tests, [0-9]+ Failures, [0-9]+ Ignored' ./build/unit_tests.log | sed 's/OK//')
+          if [ -n "$TEST_SUMMARY" ]; then
             echo "✅ **Unit Tests:** Passed ($TEST_SUMMARY)" >> ci_summary_report.md
+          else
+            echo "⚠️ **Unit Tests:** Could not parse test summary." >> ci_summary_report.md
+          fi
 
-      - name: Generate coverage report (in Docker)
+      - name: Generate Code Coverage and Update Report
         run: |
           docker run --rm \
-            --user "$(id -u):$(id -g)" \
             --workdir /app \
             -v "${{ github.workspace }}":/app \
             petgem-ci-env:latest \
             make coverage
-
-            COVERAGE_PERCENTAGE=$(lcov --summary build/coverage.info | grep "lines......" | cut -d ' ' -f 4)
-            echo "✅ **Code Coverage:** Generated (${COVERAGE_PERCENTAGE} line coverage)" >> ci_summary_report.md
-
-      - name: Fix coverage paths
-        run: |
-          echo "Fixing paths in coverage.info..."
-          # Reemplaza 'SF:/app/' con 'SF:' para hacer las rutas relativas
-          # Usamos '#' como delimitador para no tener problemas con las barras '/'
+          COVERAGE_PERCENTAGE=$(lcov --summary build/coverage.info | grep "lines......" | awk '{print $2}')
+          echo "✅ **Code Coverage:** Generated (${COVERAGE_PERCENTAGE} line coverage)" >> ci_summary_report.md
           sed -i 's#^SF:/app/#SF:#g' build/coverage.info
 
-      - name: Inspect final coverage file
-        run: |
-          echo "--- Checking SF paths in coverage.info (after fixing) ---"
-          grep "^SF:" build/coverage.info | head -n 10
-
-      - name: Upload coverage to Coveralls
-        uses: coverallsapp/github-action@v2 
+      - name: Upload Code Coverage to Coveralls
+        uses: coverallsapp/github-action@v2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          # format: lcov
           path-to-lcov: ./build/coverage.info
-          # fail-on-error: true
-          # flag-name: unit-tests
-          # fail-under: 80
           fail-on-error: true
         env:
           COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
-
-      - name: Upload HTML coverage report
+      
+      - name: Upload HTML coverage report as artifact
         uses: actions/upload-artifact@v4
         with:
           name: petgem-coverage-report-html
@@ -105,17 +89,16 @@ jobs:
           if-no-files-found: error
 
       # === Step 4: VALIDATION TEST ===
-      - name: Run Validation Test
+      - name: Run Validation Test and Update Report
         run: |
           docker run --rm \
             --workdir /app \
             -v "${{ github.workspace }}":/app \
             petgem-ci-env:latest \
             make validation_test
+          echo "✅ **Validation Test:** Passed (output files generated successfully)" >> ci_summary_report.md
 
-            echo "✅ **Validation Test:** Passed (output files generated successfully)" >> ci_summary_report.md
-
-      - name: Upload Validation Test Results
+      - name: Upload Validation Test Results as artifact
         uses: actions/upload-artifact@v4
         with:
           name: validation-test-results
@@ -123,21 +106,14 @@ jobs:
           if-no-files-found: error
 
       # === Step 5: DOCUMENTATION & BADGE ===
-      - name: Generate Doxygen XML Documentation
+      - name: Generate Documentation and Update Report
         run: |
-          # Este paso crea el directorio ./build/doxygen/xml/ en el runner
           docker run --rm \
             --workdir /app \
             -v "${{ github.workspace }}":/app \
             petgem-ci-env:latest \
             make docs
-
-      - name: Calculate Doc Coverage and Generate Badge
-        run: |
-          python3 ./scripts/coverage_doc/coverage_doc.py ./docs/doxygen/xml/ \
-            --badge \
-            --badge_path ./build/doc_coverage_badge.svg
-
+          python3 ./scripts/coverage_doc/coverage_doc.py ./docs/doxygen/xml/ --badge --badge_path ./build/doc_coverage_badge.svg
           DOC_COVERAGE=$(python3 ./scripts/coverage_doc/coverage_doc.py ./docs/doxygen/xml/ | grep "Documentation Coverage:" | awk '{print $3}')
           echo "✅ **Documentation:** Generated (Coverage: ${DOC_COVERAGE})" >> ci_summary_report.md
 
@@ -146,19 +122,20 @@ jobs:
           mkdir -p ./public
           mv ./build/doc_coverage_badge.svg ./public/
 
-      - name: Deploy Badge to GitHub Pages
+      - name: Deploy Documentation Badge to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: gh-pages
           publish_dir: ./public
+          keep_files: true
+          cname: ''
           user_name: 'github-actions[bot]'
           user_email: 'github-actions[bot]@users.noreply.github.com'
 
       # === Step 6: GATHER ENVIRONMENT INFO & FINALIZE SUCCESS REPORT ===
       - name: Gather Environment and Tool Versions
         run: |
-          # Run inside Docker to get versions from the build environment
           docker run --rm \
             --workdir /app \
             -v "${{ github.workspace }}":/app \
@@ -172,7 +149,7 @@ jobs:
               echo "- **Python Version:** $(python3 --version)" >> /app/ci_summary_report.md;
               echo "- **Doxygen Version:** $(doxygen --version)" >> /app/ci_summary_report.md;
             '
-      
+
       - name: Finalize and Upload Success Report
         run: |
           echo "" >> ci_summary_report.md
@@ -183,12 +160,13 @@ jobs:
         with:
           name: ci-execution-report
           path: ci_summary_report.md
-          if-no-files-found: error
 
       # === Step 7: HANDLE FAILURE ===
-      - name: Generate and Upload Failure Report
+      - name: Finalize and Upload Failure Report
         if: failure()
         run: |
+          echo "" >> ci_summary_report.md
+          echo "---" >> ci_summary_report.md
           echo "❌ **Result:** The pipeline failed at a previous step." >> ci_summary_report.md
           echo "Please check the logs of the failed step for details." >> ci_summary_report.md
         
@@ -196,4 +174,4 @@ jobs:
         with:
           name: ci-execution-report-FAILED
           path: ci_summary_report.md
-          if-no-files-found: error
+          if-no-files-found: warn
