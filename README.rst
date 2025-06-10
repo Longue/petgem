@@ -5,8 +5,6 @@
 
 ----
 
-
-
 .. image:: https://Longue.github.io/petgem/doc_coverage_badge.svg
    :alt: Documentation Coverage
    :target: https://petgem-c.readthedocs.io/en/latest/index.html
@@ -14,27 +12,6 @@
 .. image:: https://coveralls.io/repos/github/Longue/petgem/badge.svg?branch=c-development
    :alt: Coveralls
    :target: https://coveralls.io/github/Longue/petgem?branch=c-development
-
-.. 
-   image:: https://readthedocs.org/projects/emg3d/badge/?version=latest
-   :target: http://petgem.bsc.es/
-   :alt: Documentation Status
-.. 
-   image:: https://travis-ci.com/ocastilloreyes/petgem.svg?branch=master
-   :target: https://travis-ci.com/ocastilloreyes/petgem
-   :alt: Travis-CI
-.. 
-   image:: https://coveralls.io/repos/github/ocastilloreyes/petgem/badge.svg
-   :target: https://coveralls.io/github/ocastilloreyes/petgem?branch=master
-   :alt: Coveralls
-.. 
-   image:: https://app.codacy.com/project/badge/Grade/283b8199432f4daa8526783d6630377d
-   :target: https://www.codacy.com/app/ocastilloreyes/petgem
-   :alt: Codacy-grade
-.. 
-   image:: https://img.shields.io/pypi/v/petgem
-   :target: https://pypi.org/project/petgem/
-   :alt: Pypi-petgem
 
 .. image:: https://img.shields.io/github/v/release/ocastilloreyes/petgem
    :target: https://github.com/ocastilloreyes/petgem/releases
