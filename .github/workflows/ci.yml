@@ -90,7 +90,7 @@ jobs:
           path-to-lcov: ./build/coverage.info
           base-path: /app 
           # fail-on-error: true
-          # flag-name: unit-tests # Nombre para este job de cobertura si usas parallel
+          # flag-name: unit-tests
           # fail-under: 80 # Falla si la cobertura total es menor al 80%
           # fail-on-error: true # Falla si hay un error al subir a Coveralls
 
