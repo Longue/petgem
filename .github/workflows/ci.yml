@@ -131,7 +131,7 @@ jobs:
 
       - name: Calculate Doc Coverage and Generate Badge
         run: |
-          python3 ./scripts/calculate_doc_coverage.py ./docs/doxygen/xml/ \
+          python3 ./scripts/coverage_doc/coverage_doc.py ./docs/doxygen/xml/ \
             --badge \
             --badge_path ./build/doc_coverage_badge.svg
       #     --fail_under 75 
