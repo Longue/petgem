@@ -1,3 +1,10 @@
+######################
+Contributing & License
+######################
+
+Contributing
+============
+
 License
 =======
 

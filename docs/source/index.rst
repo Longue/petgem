@@ -32,11 +32,11 @@ This documentation provides comprehensive information about PETGEM, including in
    :caption: API Reference:
 
    manual/about_petgem
-   manual/csem
-   manual/publications
-   manual/support
+   manual/install
+   manual/guide
    api/index
-   manual/license
+   manual/publications
+   manual/contributing
    manual/contact
 
 .. 
