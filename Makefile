@@ -108,8 +108,8 @@ coverage: build clean_coverage run_tests
 coverage: build clean_coverage run_tests
 	@echo ">>> [COVERAGE] Generating LCOV report..."
 	lcov --capture --directory . --output-file build/coverage.raw.info --rc lcov_branch_coverage=1
-	@echo ">>> [COVERAGE] Removing external libraries from report..."
-	lcov --remove build/coverage.raw.info '/usr/*' '/opt/*' --output-file build/coverage.info --rc lcov_branch_coverage=1
+	@echo ">>> [COVERAGE] Removing external libraries AND tests from report..."
+	lcov --remove build/coverage.raw.info '/usr/*' '/opt/*' 'tests/*' --output-file build/coverage.info --rc lcov_branch_coverage=1
 	@echo ">>> [COVERAGE] Generating HTML report..."
 	genhtml build/coverage.info --output-directory build/coverage-html --branch-coverage
 	@echo ">>> [COVERAGE] HTML report generated at build/coverage-html/index.html"
