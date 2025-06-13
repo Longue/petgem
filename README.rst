@@ -9,7 +9,7 @@
    :alt: Documentation Coverage
    :target: https://petgem-c.readthedocs.io/en/latest/index.html
 
-.. |coverage_badge| image:: https://coveralls.io/repos/github/Longue/petgem/badge.svg?branch=c-development&metric=line
+.. |coverage_badge| image:: https://coveralls.io/repos/github/Longue/petgem/badge.svg?branch=c-development
    :alt: Coveralls
    :target: https://coveralls.io/github/Longue/petgem?branch=c-development
 

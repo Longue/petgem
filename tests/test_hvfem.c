@@ -15,9 +15,13 @@ static Vec      temp_vec_for_dm_size = NULL; // Para obtener el tamaño de DM
 
 // --- Funciones de configuración y limpieza de la suite ---
 void setUp_hvfem(void) {
-    PetscCallVoid(PetscOptionsClear(NULL)); // Limpiar opciones PETSc
+    PetscCallVoid(PetscOptionsClear(NULL));
     if (test_dm) PetscCallVoid(DMDestroy(&test_dm));
-    if (temp_vec_for_dm_size) PetscCallVoid(VecDestroy(&temp_vec_for_dm_size));
+    
+    // Crear un DM simple para los tests que lo necesiten
+    PetscInt dim = 3, cells[] = {1, 1, 1};
+    PetscCallVoid(DMPlexCreateBoxMesh(PETSC_COMM_WORLD, dim, PETSC_FALSE, cells, NULL, NULL, (DMBoundaryType[]){DM_BOUNDARY_NONE, DM_BOUNDARY_NONE, DM_BOUNDARY_NONE}, PETSC_TRUE, 0, PETSC_FALSE, &test_dm));
+    PetscCallVoid(DMSetUp(test_dm));
 }
 
 void tearDown_hvfem(void) {
@@ -154,49 +158,6 @@ void test_vectorRotation(void) {
     TEST_ASSERT_DOUBLE_WITHIN(1e-9, 0.5, rotatedVector[1]);
     TEST_ASSERT_DOUBLE_WITHIN(1e-9, 0.70710678118, rotatedVector[2]);
 }
-
-// Test para tetrahedronXYZToXiEtaZeta (Conversión de coordenadas)
-// void test_tetrahedronXYZToXiEtaZeta(void) {
-//     PetscScalar cellCoords[4 * NUM_DIMENSIONS]; // 4 vertices * 3 coords
-//     PetscReal xyz_point[NUM_DIMENSIONS];
-//     PetscReal XiEtaZeta_point[NUM_DIMENSIONS];
-//     PetscErrorCode ierr;
-// 
-//     // Define un tetraedro de referencia (vertices: V0=(0,0,0), V1=(1,0,0), V2=(0,1,0), V3=(0,0,1))
-//     // La función tetrahedronXYZToXiEtaZeta mapea de XYZ físico a XiEtaZeta de referencia.
-//     // Si el tetraedro físico es el mismo que el de referencia, la transformación es la identidad.
-//     cellCoords[0] = 0.0; cellCoords[1] = 0.0; cellCoords[2] = 0.0; // V0 (0,0,0)
-//     cellCoords[3] = 1.0; cellCoords[4] = 0.0; cellCoords[5] = 0.0; // V1 (1,0,0)
-//     cellCoords[6] = 0.0; cellCoords[7] = 1.0; cellCoords[8] = 0.0; // V2 (0,1,0)
-//     cellCoords[9] = 0.0; cellCoords[10] = 0.0; cellCoords[11] = 1.0; // V3 (0,0,1)
-// 
-//     // Test 1: Centroide físico (0.25, 0.25, 0.25) -> debe ser (0.25, 0.25, 0.25) en referencia
-//     xyz_point[0] = 0.25; xyz_point[1] = 0.25; xyz_point[2] = 0.25;
-//     ierr = tetrahedronXYZToXiEtaZeta(cellCoords, xyz_point, XiEtaZeta_point);
-//     TEST_ASSERT_EQUAL_INT(PETSC_SUCCESS, ierr);
-//     TEST_ASSERT_DOUBLE_WITHIN(1e-9, 0.25, XiEtaZeta_point[0]);
-//     TEST_ASSERT_DOUBLE_WITHIN(1e-9, 0.25, XiEtaZeta_point[1]);
-//     TEST_ASSERT_DOUBLE_WITHIN(1e-9, 0.25, XiEtaZeta_point[2]);
-//     // La suma de los 4 componentes barycéntricos (L0, L1, L2, L3) siempre es 1.
-//     // Aquí, XiEtaZeta_point son L1, L2, L3. L0 sería 1 - (L1+L2+L3).
-//     TEST_ASSERT_DOUBLE_WITHIN(1e-9, 0.25, 1.0 - (XiEtaZeta_point[0] + XiEtaZeta_point[1] + XiEtaZeta_point[2]));
-// 
-//     // Test 2: Vértice físico V0 (0,0,0) -> debe ser (0,0,0) en referencia
-//     xyz_point[0] = 0.0; xyz_point[1] = 0.0; xyz_point[2] = 0.0;
-//     ierr = tetrahedronXYZToXiEtaZeta(cellCoords, xyz_point, XiEtaZeta_point);
-//     TEST_ASSERT_EQUAL_INT(PETSC_SUCCESS, ierr);
-//     TEST_ASSERT_DOUBLE_WITHIN(1e-9, 0.0, XiEtaZeta_point[0]);
-//     TEST_ASSERT_DOUBLE_WITHIN(1e-9, 0.0, XiEtaZeta_point[1]);
-//     TEST_ASSERT_DOUBLE_WITHIN(1e-9, 0.0, XiEtaZeta_point[2]);
-// 
-//     // Test 3: Vértice físico V1 (1,0,0) -> debe ser (1,0,0) en referencia
-//     xyz_point[0] = 1.0; xyz_point[1] = 0.0; xyz_point[2] = 0.0;
-//     ierr = tetrahedronXYZToXiEtaZeta(cellCoords, xyz_point, XiEtaZeta_point);
-//     TEST_ASSERT_EQUAL_INT(PETSC_SUCCESS, ierr);
-//     TEST_ASSERT_DOUBLE_WITHIN(1e-9, 1.0, XiEtaZeta_point[0]);
-//     TEST_ASSERT_DOUBLE_WITHIN(1e-9, 0.0, XiEtaZeta_point[1]);
-//     TEST_ASSERT_DOUBLE_WITHIN(1e-9, 0.0, XiEtaZeta_point[2]);
-// }
 
 // Test para computeCellOrientation (Requiere un DM real, solo chequea ejecución)
 void test_computeCellOrientation_execution(void) {
@@ -393,18 +354,216 @@ void test_crossProduct(void) {
 }
 
 
+// --- Test para tetrahedronXYZToXiEtaZeta ---
+void test_tetrahedronXYZToXiEtaZeta(void) {
+    PetscScalar cellCoords[4 * 3];
+    PetscReal xyz_point[3], xiEtaZeta[3];
+    PetscErrorCode ierr;
+
+    // Tetraedro de referencia: V0(0,0,0), V1(1,0,0), V2(0,1,0), V3(0,0,1)
+    memset(cellCoords, 0, sizeof(cellCoords));
+    cellCoords[3]=1.0; cellCoords[7]=1.0; cellCoords[11]=1.0;
+
+    // Test 1: Centroide
+    xyz_point[0] = 0.25; xyz_point[1] = 0.25; xyz_point[2] = 0.25;
+    ierr = tetrahedronXYZToXiEtaZeta(cellCoords, xyz_point, xiEtaZeta);
+    TEST_ASSERT_EQUAL_INT(PETSC_SUCCESS, ierr);
+    TEST_ASSERT_DOUBLE_WITHIN(1e-9, 0.25, xiEtaZeta[0]);
+    TEST_ASSERT_DOUBLE_WITHIN(1e-9, 0.25, xiEtaZeta[1]);
+    TEST_ASSERT_DOUBLE_WITHIN(1e-9, 0.25, xiEtaZeta[2]);
+    
+    // Test 2: Vértice V3
+    xyz_point[0] = 0.0; xyz_point[1] = 0.0; xyz_point[2] = 1.0;
+    ierr = tetrahedronXYZToXiEtaZeta(cellCoords, xyz_point, xiEtaZeta);
+    TEST_ASSERT_EQUAL_INT(PETSC_SUCCESS, ierr);
+    TEST_ASSERT_DOUBLE_WITHIN(1e-9, 0.0, xiEtaZeta[0]);
+    TEST_ASSERT_DOUBLE_WITHIN(1e-9, 0.0, xiEtaZeta[1]);
+    TEST_ASSERT_DOUBLE_WITHIN(1e-9, 1.0, xiEtaZeta[2]);
+}
+
+// --- Test para computeGaussPoints3D ---
+// Probar diferentes números de puntos para activar diferentes 'case' en el switch.
+void test_computeGaussPoints3D_all_cases(void) {
+    PetscInt cases[] = {1, 4, 5, 11, 14, 24, 31, 43, 53, 126, 210};
+    int num_cases = sizeof(cases)/sizeof(cases[0]);
+
+    for (int i=0; i<num_cases; ++i) {
+        PetscInt numGaussPoints = cases[i];
+        PetscReal **gaussPoints, *weights;
+        PetscCallVoid(PetscCalloc1(numGaussPoints, &gaussPoints));
+        for (int j = 0; j < numGaussPoints; ++j) PetscCallVoid(PetscCalloc1(3, &gaussPoints[j]));
+        PetscCallVoid(PetscCalloc1(numGaussPoints, &weights));
+        
+        PetscErrorCode ierr = computeGaussPoints3D(numGaussPoints, gaussPoints, weights);
+        TEST_ASSERT_EQUAL_INT(PETSC_SUCCESS, ierr);
+
+        PetscReal total_weight = 0.0;
+        for (int j = 0; j < numGaussPoints; ++j) total_weight += weights[j];
+        TEST_ASSERT_DOUBLE_WITHIN(1e-9, 1.0/6.0, total_weight);
+        
+        for (int j = 0; j < numGaussPoints; ++j) PetscCallVoid(PetscFree(gaussPoints[j]));
+        PetscCallVoid(PetscFree(gaussPoints));
+        PetscCallVoid(PetscFree(weights));
+    }
+}
+
+// --- Test para computeCellOrientation ---
+void test_computeCellOrientation(void) {
+    PetscInt cellOrientation[10];
+    PetscErrorCode ierr;
+    PetscInt cell_idx = 0;
+    
+    // Testeamos la función, pero sin aserciones sobre los valores,
+    // ya que dependen de la implementación interna de DMPlex.
+    // Esto asegura que la función se ejecuta.
+    ierr = computeCellOrientation(test_dm, cell_idx, cellOrientation);
+    TEST_ASSERT_EQUAL_INT(PETSC_SUCCESS, ierr);
+}
+
+
+// --- Test para computeElementalGradientMatrix ---
+// Se prueba con orientaciones directas e invertidas para cubrir las ramas.
+void test_computeElementalGradientMatrix_orientations(void) {
+    PetscReal **gradientMatrix;
+    PetscCallVoid(PetscCalloc1(6, &gradientMatrix));
+    PetscCallVoid(PetscCalloc1(6 * 4, &gradientMatrix[0]));
+    for (int i=1; i<6; ++i) gradientMatrix[i] = gradientMatrix[0] + i * 4;
+    
+    // Prueba con orientaciones invertidas
+    PetscInt cellOrientationInverted[10] = {0,0,0,0, 1,1,1,1,1,1};
+    computeElementalGradientMatrix(cellOrientationInverted, gradientMatrix);
+    TEST_ASSERT_EQUAL_DOUBLE(-1.0, gradientMatrix[0][0]);
+    TEST_ASSERT_EQUAL_DOUBLE(1.0, gradientMatrix[0][1]);
+
+    // Prueba con orientaciones directas
+    PetscInt cellOrientationDirect[10] = {0,0,0,0, 0,0,0,0,0,0};
+    computeElementalGradientMatrix(cellOrientationDirect, gradientMatrix);
+    TEST_ASSERT_EQUAL_DOUBLE(1.0, gradientMatrix[0][0]);
+    TEST_ASSERT_EQUAL_DOUBLE(-1.0, gradientMatrix[0][1]);
+    
+    PetscCallVoid(PetscFree(gradientMatrix[0]));
+    PetscCallVoid(PetscFree(gradientMatrix));
+}
+
+
+// --- Smoke Tests para las funciones más complejas ---
+// Estos tests aseguran que las funciones se ejecutan para diferentes 'nord'
+// y activan la mayor cantidad de código posible.
+
+void test_complex_shape_functions_execution(void) {
+    PetscInt nords_to_test[] = {1, 2, 3}; // Probar órdenes 1, 2 y 3
+    int num_nords = sizeof(nords_to_test)/sizeof(nords_to_test[0]);
+
+    for (int i=0; i<num_nords; ++i) {
+        PetscInt nord = nords_to_test[i];
+        PetscInt numDofInCell = nord * (nord + 2) * (nord + 3) / 2;
+        PetscInt cellOrientation[10] = {0};
+        PetscReal point[3] = {0.25, 0.25, 0.25};
+        PetscReal **basisFunctions, **curlBasisFunctions;
+        PetscReal jacobian[3][3] = {{1,0,0},{0,1,0},{0,0,1}};
+        PetscReal invJacobian[3][3] = {{1,0,0},{0,1,0},{0,0,1}};
+
+        PetscCallVoid(PetscCalloc1(3, &basisFunctions));
+        PetscCallVoid(PetscCalloc1(3, &curlBasisFunctions));
+        for (int j=0; j<3; ++j) {
+            PetscCallVoid(PetscCalloc1(numDofInCell, &basisFunctions[j]));
+            PetscCallVoid(PetscCalloc1(numDofInCell, &curlBasisFunctions[j]));
+        }
+
+        // Ejecutar las funciones que llaman a la mayoría del código
+        PetscErrorCode ierr1 = computeBasisFunctions(nord, cellOrientation, jacobian, invJacobian, point, basisFunctions, curlBasisFunctions);
+        TEST_ASSERT_EQUAL_INT(PETSC_SUCCESS, ierr1);
+
+        for (int j=0; j<3; ++j) {
+            PetscCallVoid(PetscFree(basisFunctions[j]));
+            PetscCallVoid(PetscFree(curlBasisFunctions[j]));
+        }
+        PetscCallVoid(PetscFree(basisFunctions));
+        PetscCallVoid(PetscFree(curlBasisFunctions));
+    }
+}
+
+
+// --- Test para la función que no devolvía nada computeElementalGradientMatrix2 ---
+void test_computeElementalGradientMatrix2_runs(void){
+    PetscInt nord = 1;
+    PetscInt cellOrientation[10] = {0};
+    PetscInt numGaussPoints;
+    computeNumGaussPoints3D(nord, &numGaussPoints);
+    PetscReal **gaussPoints, *weights;
+    PetscCallVoid(PetscCalloc1(numGaussPoints, &gaussPoints));
+    for (int i=0; i<numGaussPoints; ++i) PetscCallVoid(PetscCalloc1(3, &gaussPoints[i]));
+    PetscCallVoid(PetscCalloc1(numGaussPoints, &weights));
+    computeGaussPoints3D(numGaussPoints, gaussPoints, weights);
+
+    PetscErrorCode ierr = computeElementalGradientMatrix2(nord, cellOrientation, numGaussPoints, gaussPoints, weights);
+    TEST_ASSERT_EQUAL_INT(PETSC_SUCCESS, ierr);
+
+    for (int i=0; i<numGaussPoints; ++i) PetscCallVoid(PetscFree(gaussPoints[i]));
+    PetscCallVoid(PetscFree(gaussPoints));
+    PetscCallVoid(PetscFree(weights));
+}
+
+// --- Test para la función computeElementalMatrix ---
+void test_computeElementalMatrix_runs_for_nord1_and_2(void) {
+    PetscInt nords_to_test[] = {1, 2};
+    for(int n=0; n<2; ++n) {
+        PetscInt nord = nords_to_test[n];
+        PetscInt numDof = nord * (nord+2)*(nord+3)/2;
+        PetscInt cellOrientation[10] = {0};
+        PetscReal jacobian[3][3] = {{1,0,0},{0,1,0},{0,0,1}};
+        PetscReal invJacobian[3][3] = {{1,0,0},{0,1,0},{0,0,1}};
+        PetscReal resistivity[3] = {1,1,1};
+        
+        PetscInt numGauss;
+        computeNumGaussPoints3D(nord, &numGauss);
+        PetscReal **points, *weights, **Me, **Ke;
+        PetscCallVoid(PetscCalloc1(numGauss, &points));
+        for(int i=0; i<numGauss; ++i) PetscCallVoid(PetscCalloc1(3, &points[i]));
+        PetscCallVoid(PetscCalloc1(numGauss, &weights));
+        computeGaussPoints3D(numGauss, points, weights);
+
+        PetscCallVoid(PetscCalloc1(numDof, &Me));
+        PetscCallVoid(PetscCalloc1(numDof*numDof, &Me[0]));
+        for(int i=1; i<numDof; ++i) Me[i] = Me[0] + i*numDof;
+        PetscCallVoid(PetscCalloc1(numDof, &Ke));
+        PetscCallVoid(PetscCalloc1(numDof*numDof, &Ke[0]));
+        for(int i=1; i<numDof; ++i) Ke[i] = Ke[0] + i*numDof;
+
+        PetscErrorCode ierr = computeElementalMatrix(nord, cellOrientation, jacobian, invJacobian, numGauss, points, weights, resistivity, Me, Ke);
+        TEST_ASSERT_EQUAL_INT(PETSC_SUCCESS, ierr);
+
+        // Limpieza
+        for(int i=0; i<numGauss; ++i) PetscCallVoid(PetscFree(points[i]));
+        PetscCallVoid(PetscFree(points));
+        PetscCallVoid(PetscFree(weights));
+        PetscCallVoid(PetscFree(Me[0]));
+        PetscCallVoid(PetscFree(Me));
+        PetscCallVoid(PetscFree(Ke[0]));
+        PetscCallVoid(PetscFree(Ke));
+    }
+}
+
 // --- Test Group Runner ---
 void suite_hvfem(void) {
     // Las funciones setUp/tearDown son llamadas por la suite
     setUp_hvfem();
+
     RUN_TEST(test_computeNumGaussPoints3D);
     RUN_TEST(test_computeGaussPoints3D);
     RUN_TEST(test_vectorRotation);
-    //RUN_TEST(test_tetrahedronXYZToXiEtaZeta);
     RUN_TEST(test_computeCellOrientation_execution);
     RUN_TEST(test_computeBasisFunctions_execution);
     RUN_TEST(test_computeElementalGradientMatrix_execution);
     RUN_TEST(test_computeElementalGradientMatrix2_execution);
     RUN_TEST(test_crossProduct);
+    RUN_TEST(test_computeGaussPoints3D_all_cases);
+    RUN_TEST(test_tetrahedronXYZToXiEtaZeta);
+    RUN_TEST(test_computeCellOrientation);
+    RUN_TEST(test_computeElementalGradientMatrix_orientations);
+    RUN_TEST(test_complex_shape_functions_execution);
+    RUN_TEST(test_computeElementalMatrix_runs_for_nord1_and_2);
+    RUN_TEST(test_computeElementalGradientMatrix2_runs);
+
     tearDown_hvfem();
 }
